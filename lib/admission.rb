@@ -1,5 +1,7 @@
+require_relative 'admission/admission'
 require_relative 'admission/version'
 
-module Admission
+require_relative 'admission/privilege'
+require_relative 'admission/status'
 
-end
+require_relative 'admission/privileges_definer'
