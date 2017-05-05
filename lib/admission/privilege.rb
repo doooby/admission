@@ -19,8 +19,9 @@ class Admission::Privilege
     @inherited = privileges
   end
 
-  def dup_with_context context
-    return self if context.nil? || context.empty?
+  def dup_with_context *context
+    context = context.flatten.compact
+    return self if context.empty?
     with_context = dup
     with_context.instance_variable_set :@context, context
     with_context
@@ -45,6 +46,15 @@ class Admission::Privilege
 
   def self.define_order &block
     Admission::PrivilegesDefiner.define &block
+  end
+
+  def self.get_from_order index, name, level=nil
+    levels = index[name.to_sym] || return
+    if level && !level.empty?
+      levels[level.to_sym]
+    else
+      levels[Admission::Privilege::BASE_LEVEL_NAME]
+    end
   end
 
 end

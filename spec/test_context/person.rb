@@ -1,15 +1,16 @@
 
 class Person
 
-  attr_reader :sex, :privileges
+  attr_reader :name, :sex
+  attr_reader :privileges, :ability_rules
 
   FEMALE            = 0
   MALE              = 1
   APACHE_HELICOPTER = 2
 
-  def initialize sex, privileges={}
+  def initialize name, sex
+    @name
     @sex = sex
-    @privileges = @privileges
   end
 
   def countries
@@ -18,8 +19,15 @@ class Person
 
   # privileges per country
 
-  def not_women?
+  def not_woman?
     @sex != FEMALE
   end
+
+  def person
+    self
+  end
+
+  # def self.reduce_privileges **per_country
+  # end
 
 end

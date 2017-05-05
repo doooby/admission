@@ -1,35 +1,40 @@
-require_relative 'country'
-require_relative 'person'
 
 
-PRIVILEGES = Admission::Privilege.define_order do
+PRIVILEGES_ORDER = Admission::Privilege.define_order do
   privilege :vassal,   levels: %i[lord]
   privilege :man,      levels: %i[commoner knight count duke king emperor]
   privilege :supernatural, levels: %i[god primordial]
   privilege :harambe
 end
 
-# ABILITIES = Admission::Ability.define_for_privileges PRIVILEGES do
+REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER do
 
-  # privilege :harambe do
-  #   allow :all
-  # end
-  #
-  # privilege :supernatural do
-  #   allow :all do
-  #     not_woman?
-  #   end
-  # end
-  #
-  # privilege :supernatural, :god do
-  #   allow :all do |country|
-  #     Country.europe? country
-  #   end
-  # end
-  #
-  # privilege :supernatural, :primordial do
-  #   allow :all
-  # end
+  privilege :harambe do
+    allow_all
+    forbid :to_live
+  end
+
+  privilege :supernatural do
+    allow :all do
+      not_woman?
+    end
+    forbid :to_be_proven
+    forbid :rule_over_people
+  end
+
+  privilege :supernatural, :god do
+    allow :all do |country|
+      COUNTRIES.europe? country
+    end
+    allow :rule_over_people do |country|
+      COUNTRIES.europe? country
+    end
+  end
+
+  privilege :supernatural, :primordial do
+    allow :all
+    allow :rule_over_people
+  end
 
 
   # read = %i[index show edit]
@@ -70,4 +75,4 @@ end
   #
   # end
 
-# end
+end

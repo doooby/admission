@@ -1,4 +1,4 @@
-require_relative '../spec_helper'
+require_relative '_helper'
 
 RSpec.describe Admission::Privilege do
 
@@ -87,6 +87,10 @@ RSpec.describe Admission::Privilege do
   describe '#dup_with_context' do
 
     it 'self when context is empty' do
+      p2 = privilege.dup_with_context
+      expect(p2).to be_a(Admission::Privilege)
+      expect(p2).to equal(privilege)
+
       p2 = privilege.dup_with_context nil
       expect(p2).to be_a(Admission::Privilege)
       expect(p2).to equal(privilege)
@@ -96,12 +100,45 @@ RSpec.describe Admission::Privilege do
       expect(p2).to equal(privilege)
     end
 
-    it 'duplicate only change context' do
+    it 'duplicates with context as array' do
+      p2 = privilege.dup_with_context :moon
+      expect(p2).to be_a(Admission::Privilege)
+      expect(p2).not_to equal(privilege)
+      expect(p2).to eql(privilege)
+      expect(p2).to have_attributes(name: :man, level: :base, context: [:moon])
+    end
+
+    it 'duplicates only change context' do
       p2 = privilege.dup_with_context [:moon]
       expect(p2).to be_a(Admission::Privilege)
       expect(p2).not_to equal(privilege)
       expect(p2).to eql(privilege)
       expect(p2).to have_attributes(name: :man, level: :base, context: [:moon])
+    end
+
+  end
+
+
+  describe '.get_from_order' do
+
+    it 'returns nil for bad name' do
+      index = Admission::PrivilegesDefiner.define{ privilege :man }
+      expect(Admission::Privilege.get_from_order index, :woman).to be_nil
+    end
+
+    it 'returns base privilege' do
+      index = Admission::PrivilegesDefiner.define{ privilege :man }
+      expect(Admission::Privilege.get_from_order index, :man).to be_eql(privilege)
+    end
+
+    it 'returns specific level privilege' do
+      index = Admission::PrivilegesDefiner.define{ privilege :vassal, levels: %i[lord] }
+      expect(Admission::Privilege.get_from_order index, :vassal, :lord).to be_eql(new_privilege :vassal, :lord)
+    end
+
+    it 'returns nil for bad level' do
+      index = Admission::PrivilegesDefiner.define{ privilege :vassal, levels: %i[lord] }
+      expect(Admission::Privilege.get_from_order index, :vassal, :pope).to be_nil
     end
 
   end

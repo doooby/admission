@@ -1,4 +1,4 @@
-require_relative '../spec_helper'
+require_relative '_helper'
 
 RSpec.describe Admission::PrivilegesDefiner do
 
