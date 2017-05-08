@@ -10,11 +10,11 @@ COUNTRIES = [
 class << COUNTRIES
 
   def europe? country
-    %i[czech deutschland russia] === country
+    %i[czech deutschland russia].include? country
   end
 
   def safe? country
-    %i[czech deutschland taiwan] === country
+    %i[czech deutschland taiwan].include? country
   end
 
   def are_you_dispensable? person

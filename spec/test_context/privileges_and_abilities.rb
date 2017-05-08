@@ -5,6 +5,7 @@ PRIVILEGES_ORDER = Admission::Privilege.define_order do
   privilege :man,      levels: %i[commoner knight count duke king emperor]
   privilege :supernatural, levels: %i[god primordial]
   privilege :harambe
+  privilege :uber_harambe, inherits: %i[harambe supernatural]
 end
 
 REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER do
@@ -15,15 +16,14 @@ REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER
   end
 
   privilege :supernatural do
-    allow :all do
-      not_woman?
-    end
+    allow_all &:not_woman?
     forbid :to_be_proven
     forbid :rule_over_people
   end
 
+
   privilege :supernatural, :god do
-    allow :all do |country|
+    allow_all do |country|
       COUNTRIES.europe? country
     end
     allow :rule_over_people do |country|
@@ -32,7 +32,7 @@ REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER
   end
 
   privilege :supernatural, :primordial do
-    allow :all
+    allow_all
     allow :rule_over_people
   end
 

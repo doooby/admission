@@ -1,4 +1,5 @@
 class Admission::RequestArbitration
+  VALID_DECISION = [true, false, :forbidden, nil]
 
   def initialize status, request
     @person = status.person
@@ -37,29 +38,47 @@ class Admission::RequestArbitration
     return decision unless decision.nil?
 
     decision = decide privilege
-    decision = decide_per_inheritance privilege unless decision
-    decision = false if decision.nil?
 
+    decision = false if decision.nil?
     @decisions[privilege] = decision
   end
 
-  def decision_on privilege, rules
-    decision = rules[privilege]
-    decision = @person.instance_exec *@context, &decision if Proc === decision
-    decision
+  # def decision_on privilege, rules
+  #   decision = rules[privilege]
+  #   decision = @person.instance_exec *@context, &decision if Proc === decision
+  #   decision
+  # end
+
+  def make_decision from_rules, privilege
+    if from_rules
+      decision = from_rules[privilege]
+      decision = @person.instance_exec *@context, &decision if Proc === decision
+
+      raise 'bad decision' unless VALID_DECISION.include? decision
+      decision
+    end
   end
 
   def decide_per_inheritance privilege
     inherited = privilege.inherited
     return nil if inherited.nil? || inherited.empty?
-    inherited.any?{|p| rule_per_privilege(p).eql?(true) }
+
+    inherited.any? do |p|
+      rule = rule_per_privilege p
+      return rule if rule.eql? :forbidden
+      rule.eql? true
+    end
   end
 
   def decide privilege
-    decision = decision_on privilege, @rules_index[:all]
-    return decision if decision
+    decision = make_decision @rules_index[@request], privilege
+    return decision if decision.eql?(:forbidden) || decision.eql?(true)
 
-    decision_on privilege, @rules_index[@request]
+    decision2 = decide_per_inheritance privilege
+    return false if decision2.eql?(:forbidden) && decision.eql?(false)
+    return decision2 if decision2.eql?(:forbidden) || decision2.eql?(true)
+
+    make_decision @rules_index[:all], privilege
   end
 
   # def rule privilege

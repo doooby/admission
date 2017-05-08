@@ -16,7 +16,7 @@ RSpec.describe 'request_abilities' do
     p
   end
 
-  def rule person_name, request, privilege
+  def rule request, person_name, privilege
     arbitration(person_name, request, privilege.context).rule_per_privilege privilege
   end
 
@@ -30,24 +30,48 @@ RSpec.describe 'request_abilities' do
 
     it 'allow harambe anything except to live' do
       expect(
-          rule :harambe, :all, privilege(:harambe)
+          rule :all, :harambe, privilege(:harambe)
       ).to eql(true)
 
       expect(
-          rule :harambe, :to_live, privilege(:harambe)
-      ).to eql(false)
+          rule :to_live, :harambe, privilege(:harambe)
+      ).to eql(:forbidden)
     end
 
     it 'god can rule, only in europe' do
       expect(
-          rule :european_god, :rule_over_people,
+          rule :rule_over_people, :european_god,
               privilege(:supernatural, :god, context: [:czech])
       ).to eql(true)
 
       expect(
-          rule :european_god, :rule_over_people,
+          rule :rule_over_people, :european_god,
               privilege(:supernatural, :god, context: [:taiwan])
       ).to eql(false)
+    end
+
+    it 'no level of supernatural can be proven' do
+      expect(
+          rule :to_be_proven, :european_god,
+              privilege(:supernatural)
+      ).to eql(:forbidden)
+
+      expect(
+          rule :to_be_proven, :european_god,
+              privilege(:supernatural, :god, context: [:czech])
+      ).to eql(:forbidden)
+
+      expect(
+          rule :to_be_proven, :european_god,
+              privilege(:supernatural, :primordial)
+      ).to eql(:forbidden)
+    end
+
+    it 'forbidden precendece while inherited' do
+      expect(
+        rule :to_live, :harambe,
+            privilege(:uber_harambe)
+      ).to eql(:forbidden)
     end
 
   end
