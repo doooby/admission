@@ -122,22 +122,22 @@ RSpec.describe Admission::Privilege do
   describe '.get_from_order' do
 
     it 'returns nil for bad name' do
-      index = Admission::PrivilegesDefiner.define{ privilege :man }
+      index = Admission::Privilege::OrderDefiner.define{ privilege :man }
       expect(Admission::Privilege.get_from_order index, :woman).to be_nil
     end
 
     it 'returns base privilege' do
-      index = Admission::PrivilegesDefiner.define{ privilege :man }
+      index = Admission::Privilege::OrderDefiner.define{ privilege :man }
       expect(Admission::Privilege.get_from_order index, :man).to be_eql(privilege)
     end
 
     it 'returns specific level privilege' do
-      index = Admission::PrivilegesDefiner.define{ privilege :vassal, levels: %i[lord] }
+      index = Admission::Privilege::OrderDefiner.define{ privilege :vassal, levels: %i[lord] }
       expect(Admission::Privilege.get_from_order index, :vassal, :lord).to be_eql(new_privilege :vassal, :lord)
     end
 
     it 'returns nil for bad level' do
-      index = Admission::PrivilegesDefiner.define{ privilege :vassal, levels: %i[lord] }
+      index = Admission::Privilege::OrderDefiner.define{ privilege :vassal, levels: %i[lord] }
       expect(Admission::Privilege.get_from_order index, :vassal, :pope).to be_nil
     end
 

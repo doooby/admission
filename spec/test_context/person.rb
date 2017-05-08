@@ -2,7 +2,7 @@
 class Person
 
   attr_reader :name, :sex
-  attr_reader :privileges, :ability_rules
+  attr_reader :privileges, :rules
 
   FEMALE            = 0
   MALE              = 1

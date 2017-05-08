@@ -8,7 +8,7 @@ PRIVILEGES_ORDER = Admission::Privilege.define_order do
   privilege :uber_harambe, inherits: %i[harambe supernatural]
 end
 
-REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER do
+ACTIONS_RULES = Admission::Arbitration.define_rules PRIVILEGES_ORDER do
 
   privilege :harambe do
     allow_all
@@ -20,7 +20,6 @@ REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER
     forbid :to_be_proven
     forbid :rule_over_people
   end
-
 
   privilege :supernatural, :god do
     allow_all do |country|
@@ -36,6 +35,9 @@ REQUEST_ABILITIES = Admission::Ability.define_request_abilities PRIVILEGES_ORDER
     allow :rule_over_people
   end
 
+  end
+
+RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
   # read = %i[index show edit]
   # manage = %i[new create update destroy]
