@@ -2,51 +2,82 @@
 
 PRIVILEGES_ORDER = Admission::Privilege.define_order do
   privilege :vassal,   levels: %i[lord]
-  privilege :man,      levels: %i[commoner knight count duke king emperor]
-  privilege :supernatural, levels: %i[god primordial]
-  privilege :harambe
-  privilege :uber_harambe, inherits: %i[harambe supernatural]
+  privilege :human,      levels: %i[count king]
+  privilege :emperor,  inherits: %i[vassal human]
 end
 
 ACTIONS_RULES = Admission::Arbitration.define_rules PRIVILEGES_ORDER do
 
-  privilege :harambe do
-    allow_all
-    forbid :to_live
+  privilege :human do
+    allow_all{ not_woman? }
+    forbid :raise_taxes
+    forbid :impose_corvee
+
+    forbid :impose_draft
+    forbid :act_as_god
   end
 
-  privilege :supernatural do
-    allow_all &:not_woman?
-    forbid :to_be_proven
-    forbid :rule_over_people
-  end
-
-  privilege :supernatural, :god do
+  privilege :human, :count do
     allow_all do |country|
-      COUNTRIES.europe? country
+      countries.include? country
     end
-    allow :rule_over_people do |country|
-      COUNTRIES.europe? country
+    allow :impose_corvee do |country|
+      countries.include? country
     end
   end
 
-  privilege :supernatural, :primordial do
+  privilege :human, :king do
     allow_all
-    allow :rule_over_people
+    allow :raise_taxes
   end
 
+  privilege :vassal, :lord do
+    allow :impose_draft
   end
+
+  privilege :emperor do
+    allow :act_as_god
+  end
+
+end
 
 RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
-  # read = %i[index show edit]
-  # manage = %i[new create update destroy]
-  # archive = %i[archive unarchive]
-  #
-  # privilege :super do
+  # privilege :harambe do
   #   allow :all
   # end
   #
+  # privilege :vassal do
+  #
+  #   allow_resource Person, :show do |person, _|
+  #     self == person
+  #   end
+  #
+  #   allow :persons, :index do |country|
+  #     countries.include? country
+  #   end
+  #
+  # end
+  #
+  # privilege :vassal, :lord do
+  #
+  #   allow_resource Person, :show
+  #
+  #   allow_resource Person, %i[index update] do |person, country|
+  #     allowance = countries.include? country
+  #     next allowance unless person
+  #
+  #     allowance && person.countries.include?(country)
+  #   end
+  #
+  #   allow_resource Person :destroy do |person, country|
+  #     countries.include?(country) && person.sex != Person::APACHE_HELICOPTER
+  #   end
+  #
+  # end
+
+
+
   # privilege :partner do
   #
   #   allow :companies, %i[index new create]

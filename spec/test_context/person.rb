@@ -1,21 +1,19 @@
 
 class Person
 
-  attr_reader :name, :sex
+  attr_reader :name, :sex, :countries
   attr_reader :privileges, :rules
 
   FEMALE            = 0
   MALE              = 1
   APACHE_HELICOPTER = 2
 
-  def initialize name, sex
-    @name
+  def initialize name, sex, countries
+    @name = name
     @sex = sex
+    @countries = countries
   end
 
-  def countries
-     []
-  end
 
   # privileges per country
 

@@ -1,17 +1,20 @@
 
 fixtures = {
 
-    nobody: [
-        Person::FEMALE
+    peasant_girl: [
+        Person::FEMALE,
+        []
     ],
 
-    harambe: [
-        Person::MALE#,
+    napoleon: [
+        Person::MALE,
+        []
         # {all: 'harambe'}
     ],
 
-    european_god: [
-        Person::MALE#,
+    franz_joseph: [
+        Person::MALE,
+        [:czech, :australia]
         # {czech: 'supernatural-primordial', taiwan: 'supernatural-god'}
     ]
 
@@ -33,8 +36,8 @@ privileges_data_reducer = -> (privileges_data) {
 }
 
 Person::FIXTURES = ->(name) {
-  sex, privileges = fixtures[name]
-  person = Person.new name, sex
+  *attrs, privileges = fixtures[name]
+  person = Person.new name, *attrs
   person.instance_variable_set :@privileges, privileges_data_reducer.(privileges)
   person
 }

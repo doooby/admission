@@ -1,9 +1,9 @@
 class Admission::Arbitration
   VALID_DECISION = [true, false, :forbidden, nil]
 
-  def initialize status, request
-    @person = status.person
-    @rules_index = status.rules
+  def initialize person, rules_index, request
+    @person = person
+    @rules_index = rules_index
     @request = request.to_sym
   end
 
@@ -36,20 +36,21 @@ class Admission::Arbitration
     inherited = privilege.inherited
     return nil if inherited.nil? || inherited.empty?
 
-    inherited.any? do |p|
+    explicit_allowance = false
+    inherited.each do |p|
       rule = rule_per_privilege p
-      return rule if rule.eql? :forbidden
-      rule.eql? true
+      return rule if rule == :forbidden
+      explicit_allowance ||= rule
     end
+    explicit_allowance
   end
 
   def decide privilege
     decision = make_decision @rules_index[@request], privilege
     return decision if decision.eql?(:forbidden) || decision.eql?(true)
 
-    decision2 = decide_per_inheritance privilege
-    return false if decision2.eql?(:forbidden) && decision.eql?(false)
-    return decision2 if decision2.eql?(:forbidden) || decision2.eql?(true)
+    decision = decide_per_inheritance privilege
+    return decision if decision.eql?(:forbidden) || decision.eql?(true)
 
     make_decision @rules_index[:all], privilege
   end

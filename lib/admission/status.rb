@@ -11,7 +11,7 @@ class Admission::Status
 
   def can? *args
     return false unless @privileges
-    process_request @arbiter.new(self, *args)
+    process_request @arbiter.new(person, rules, *args)
   end
 
   def cannot? *args
