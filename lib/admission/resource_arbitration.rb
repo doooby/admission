@@ -1,88 +1,88 @@
 class Admission::ResourceArbitration < Admission::Arbitration
-#
-#   def initialize status, request
-#     @person = status.person
-#     @rules_index = status.rules
-#     @request = request.to_sym
-#   end
-#
-#   def decide privilege
-#     decision = make_decision @rules_index[@request], privilege
-#     return decision if decision.eql?(:forbidden) || decision.eql?(true)
-#
-#     decision2 = decide_per_inheritance privilege
-#     return false if decision2.eql?(:forbidden) && decision.eql?(false)
-#     return decision2 if decision2.eql?(:forbidden) || decision2.eql?(true)
-#
-#     make_decision @rules_index[:all], privilege
-#   end
-#
-# end
 
+  def initialize person, rules_index, scope_or_resource, request
+    @person = person
+    scope, @resource = scope_and_resource scope_or_resource
+    @rules_index = rules_index[scope] || {}
+    @request = request.to_sym
+  end
 
-# def rule privilege
-#   decision = @decisions[privilege]
-#   return decision unless decision.nil?
-#
-#   decision = decide_on_subject privilege
-#   decision = decide_on_type privilege if TrueClass === decision && @decide_for_type
-#   decision = decide_for_inherited privilege.inherited unless decision
-#   decision = false if decision.nil?
-#
-#   @decisions[privilege] = decision
-# end
+  def make_decision from_rules, privilege
+    if from_rules
+      decision = from_rules[privilege]
+      if Proc === decision
+        if decision.instance_variable_get :@resource_arbiter
+          decision = @person.instance_exec @resource, *@context, &decision
+        else
+          decision = @person.instance_exec *@context, &decision
+        end
+      end
 
-# def decide_on_subject privilege
-#   decision = nil
-#
-#   # special any subject index (subject = :all)
-#   decision = @all_all_index[privilege] if @all_all_index
-#   return decision if decision
-#   decision = @actions_all_index[privilege] if @actions_all_index
-#   return decision if decision
-#
-#   # particular subject index
-#   decision = @all_subject_index[privilege] if @all_subject_index
-#   return decision if decision
-#   @action_subject_index[privilege] if @action_subject_index
-# end
+      unless Admission::VALID_DECISION.include? decision
+        raise "invalid decision: #{decision}"
+      end
 
-# def decide_on_type privilege
-#   decision = nil
-#
-#   decision = @all_type_index[privilege] if @all_type_index
-#   decision = decision.call *@context if Proc === decision
-#   return decision if decision
-#
-#   decision = @action_type_index[privilege] if @action_type_index
-#   decision = decision.call *@context if Proc === decision
-#   decision
-# end
+      decision
+    end
+  end
 
-# def introduce_indices all_index, subject_index, type_index
-#   all_index = self.class.rules_index[:all]
-#   subject_index = self.class.rules_index[subject]
-#   type_index = (self.class.rules_index[object] if object)
-#   arbitration.introduce_indices all_index, subject_index, type_index
-#
-#   if all_index
-#     @all_all_index = all_index[:all]
-#     @actions_all_index = all_index[action]
-#   end
-#
-#   @all_subject_index = subject_index[:all]
-#   @action_subject_index = subject_index[action]
-#
-#   if type_index
-#     @decide_for_type = true
-#     @all_type_index = subject_index[:all]
-#     @action_type_index = subject_index[action]
-#   end
+  def scope_and_resource scope_or_resource
+    case scope_or_resource
+      when Symbol
+        return [scope_or_resource]
+      when Class
+        return [Admission.type_to_scope(scope_or_resource), scope_or_resource]
+      else
+        raise "cannot derive scope from #{scope_or_resource}"
+    end
+  end
 
-  def self.define_rules privilege_order, &block
-    # builder = Admission::ResourceArbitration::RulesBuilder.new privilege_order
-    # builder.instance_exec &block
-    # builder.create_index
+  class RulesBuilder < Admission::Arbitration::RulesBuilder
+
+    def allow scope, *actions, &block
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      raise "invalid scope name" unless scope.respond_to? :to_sym
+      add_allowance_rule actions.flatten, (block || true), scope: scope.to_sym
+    end
+
+    def allow_all scope, &block
+      raise "invalid scope name" unless scope.respond_to? :to_sym
+      add_allowance_rule [Admission::ALL_ACTION], (block || true), scope: scope.to_sym
+    end
+
+    def forbid scope, *actions
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      raise "invalid scope name" unless scope.respond_to? :to_sym
+      add_allowance_rule actions.flatten, :forbidden, scope: scope.to_sym
+    end
+
+    def allow_resource scope, *actions, &block
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      block.instance_variable_set :@resource_arbiter, true if block
+      scope = Admission.type_to_scope(scope).to_sym unless scope.is_a? Symbol
+      add_allowance_rule actions.flatten, (block || true), scope: scope
+    end
+
+    def create_index
+      index_instance = @rules.reduce Hash.new do |index, allowance|
+        privilege = allowance[:privilege]
+        actions = allowance[:actions]
+        scope = allowance[:scope]
+        arbiter = allowance[:arbiter]
+
+        scope_index = (index[scope] ||= {})
+
+        actions.each do |action|
+          action_index = (scope_index[action] ||= {})
+          action_index[privilege] = arbiter
+        end
+
+        index
+      end
+
+      index_instance.freeze
+    end
+
   end
 
 end

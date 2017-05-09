@@ -1,5 +1,5 @@
 class Admission::Arbitration
-  VALID_DECISION = [true, false, :forbidden, nil]
+
 
   def initialize person, rules_index, request
     @person = person
@@ -27,7 +27,10 @@ class Admission::Arbitration
       decision = from_rules[privilege]
       decision = @person.instance_exec *@context, &decision if Proc === decision
 
-      raise 'bad decision' unless VALID_DECISION.include? decision
+      unless Admission::VALID_DECISION.include? decision
+        raise "invalid decision: #{decision}"
+      end
+
       decision
     end
   end
@@ -52,11 +55,11 @@ class Admission::Arbitration
     decision = decide_per_inheritance privilege
     return decision if decision.eql?(:forbidden) || decision.eql?(true)
 
-    make_decision @rules_index[:all], privilege
+    make_decision @rules_index[Admission::ALL_ACTION], privilege
   end
 
   def self.define_rules privilege_order, &block
-    builder = Admission::Arbitration::RulesBuilder.new privilege_order
+    builder = self::RulesBuilder.new privilege_order
     builder.instance_exec &block
     builder.create_index
   end
@@ -78,14 +81,16 @@ class Admission::Arbitration
     end
 
     def allow *actions, &block
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
       add_allowance_rule actions.flatten, (block || true)
     end
 
     def allow_all &block
-      add_allowance_rule %i[all], (block || true)
+      add_allowance_rule [Admission::ALL_ACTION], (block || true)
     end
 
     def forbid *actions
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
       add_allowance_rule actions.flatten, :forbidden
     end
 

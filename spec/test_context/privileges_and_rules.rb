@@ -43,69 +43,68 @@ end
 
 RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
-  # privilege :harambe do
-  #   allow :all
-  # end
-  #
-  # privilege :vassal do
-  #
-  #   allow_resource Person, :show do |person, _|
-  #     self == person
-  #   end
-  #
-  #   allow :persons, :index do |country|
-  #     countries.include? country
-  #   end
-  #
-  # end
-  #
-  # privilege :vassal, :lord do
-  #
-  #   allow_resource Person, :show
-  #
-  #   allow_resource Person, %i[index update] do |person, country|
-  #     allowance = countries.include? country
-  #     next allowance unless person
-  #
-  #     allowance && person.countries.include?(country)
-  #   end
-  #
-  #   allow_resource Person :destroy do |person, country|
-  #     countries.include?(country) && person.sex != Person::APACHE_HELICOPTER
-  #   end
-  #
-  # end
+  # `allow_all` & inheriting `:forbidden`
 
+  privilege :human do
+    allow_all(:actions){ not_woman? }
+    forbid :actions, :raise_taxes
+    forbid :actions, :impose_corvee
 
+    forbid :actions, :impose_draft
+    forbid :actions, :act_as_god
+  end
 
-  # privilege :partner do
-  #
-  #   allow :companies, %i[index new create]
-  #   allow_resource Company, %i[show edit policies documents debts generate_doc] do |company, country|
-  #     next false unless company.country == country
-  #     company.id == company_id || company.supervisor_id == company_id
-  #   end
-  #
-  #   allow :policies, %i[index new create]
-  #   allow_resource Policy, %i[show edit get_contacts] do |policy, country|
-  #     next false unless policy.country == country
-  #     policy.supervisor_id == company_id || policy.company_id == company_id
-  #   end
-  #
-  #   allow :contacts, %i[index new create]
-  #   allow_resource Contact, %i[show edit generate_doc] do |contact, country|
-  #     next false unless contact.country == country
-  #     contact.company_id == company_id || contact.supervisor_id == company_id
-  #   end
-  #
-  #   allow :documents, read + %i[download]
-  #   allow_resource Document, archive do |document, country|
-  #     !document.exam
-  #   end
-  #
-  #   allow :debts, read
-  #   allow :categories, read
-  #
-  # end
+  privilege :human, :count do
+    allow_all :actions do |country|
+      countries.include? country
+    end
+    allow :actions, :impose_corvee do |country|
+      countries.include? country
+    end
+  end
+
+  privilege :human, :king do
+    allow_all :actions
+    allow :actions, :raise_taxes
+  end
+
+  privilege :vassal, :lord do
+    allow :actions, :impose_draft
+  end
+
+  privilege :emperor do
+    allow :actions, :act_as_god
+  end
+
+  # `allow_resource` scoping & inheritance
+
+  privilege :vassal do
+
+    allow_resource Person, :show do |person, _|
+      self == person
+    end
+
+    allow :persons, :index do |country|
+      countries.include? country
+    end
+
+  end
+
+  privilege :vassal, :lord do
+
+    allow_resource Person, :show
+
+    allow_resource Person, %i[index update] do |person, country|
+      allowance = countries.include? country
+      next allowance unless person
+
+      allowance && person.countries.include?(country)
+    end
+
+    allow_resource Person, :destroy do |person, country|
+      countries.include?(country) && person.sex != Person::APACHE_HELICOPTER
+    end
+
+  end
 
 end
