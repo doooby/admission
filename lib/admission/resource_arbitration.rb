@@ -30,8 +30,17 @@ class Admission::ResourceArbitration < Admission::Arbitration
     if scope_or_resource.is_a? Symbol
       [scope_or_resource]
     else
-      [Admission.type_to_scope(scope_or_resource.class).to_sym, scope_or_resource]
+      [self.class.type_to_scope(scope_or_resource.class).to_sym, scope_or_resource]
     end
+  end
+
+  def self.type_to_scope_resolution proc=nil, &block
+    @type_to_scope = proc || block
+  end
+
+  def self.type_to_scope type
+    scope = @type_to_scope && @type_to_scope.call(type)
+    scope || :"#{type.name.downcase}s"
   end
 
   class RulesBuilder < Admission::Arbitration::RulesBuilder
@@ -56,7 +65,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
     def allow_resource scope, *actions, &block
       raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
       block.instance_variable_set :@resource_arbiter, true if block
-      scope = Admission.type_to_scope(scope).to_sym unless scope.is_a? Symbol
+      scope = Admission::ResourceArbitration.type_to_scope(scope).to_sym unless scope.is_a? Symbol
       add_allowance_rule actions.flatten, (block || true), scope: scope
     end
 
