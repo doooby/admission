@@ -4,7 +4,7 @@ class Admission::Status
 
   def initialize person, privileges, rules, arbiter
     @person = person
-    @privileges = (privileges && !privileges.empty?) ? privileges : nil
+    @privileges = (privileges.nil? || privileges.empty?) ? nil : privileges
     @rules = rules
     @arbiter = arbiter
   end
@@ -16,6 +16,14 @@ class Admission::Status
 
   def cannot? *args
     !can?(*args)
+  end
+
+  def request! *args
+    can?(*args) || begin
+      exception = Admission::Denied.new self, *args
+      yield exception if block_given?
+      raise exception
+    end
   end
 
   private

@@ -6,7 +6,7 @@ RSpec.describe 'resources_arbitrating' do
   let(:female){ Person.new 'female', Person::FEMALE, [:czech] }
 
   def arbitration scope, action, context=nil
-    arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES, scope, action
+    arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES, action, scope
     arbitration.prepare_sitting *context
     arbitration
   end
@@ -35,7 +35,7 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'disallows woman to do anything' do
       arbitration = Admission::ResourceArbitration.new female, RESOURCE_RULES,
-          :actions, :anything
+          :anything, :actions
       arbitration.prepare_sitting
       expect(
           arbitration.rule_per_privilege privilege(:human)
@@ -44,7 +44,7 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'allow woman-count to do anything in her country' do
       arbitration = Admission::ResourceArbitration.new female, RESOURCE_RULES,
-          :actions, :anything
+          :anything, :actions
       arbitration.prepare_sitting :czech
       expect(
           arbitration.rule_per_privilege privilege(:human, :count, context: [:czech])

@@ -1,6 +1,6 @@
 class Admission::ResourceArbitration < Admission::Arbitration
 
-  def initialize person, rules_index, scope_or_resource, request
+  def initialize person, rules_index, request, scope_or_resource
     @person = person
     scope, @resource = scope_and_resource scope_or_resource
     @rules_index = rules_index[scope] || {}
@@ -30,7 +30,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
     if scope_or_resource.is_a? Symbol
       [scope_or_resource]
     else
-      [Admission.type_to_scope(scope_or_resource), scope_or_resource]
+      [Admission.type_to_scope(scope_or_resource.class).to_sym, scope_or_resource]
     end
   end
 
