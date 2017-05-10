@@ -103,12 +103,10 @@ RSpec.describe 'actions_arbitrating' do
   end
 
   it 'forbids emperor to impose draft because of inheritance' do
-    with_bug do
     expect(
         rule :impose_draft,
             privilege(:emperor)
     ).to eql(:forbidden)
-  end
   end
 
   it 'allows emperor to act as god' do

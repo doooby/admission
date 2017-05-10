@@ -2,8 +2,10 @@ require_relative '_helper'
 
 RSpec.describe 'resources_arbitrating' do
 
+  let(:person){ Person.new 'person', Person::MALE, [:czech] }
+  let(:female){ Person.new 'female', Person::FEMALE, [:czech] }
+
   def arbitration scope, action, context=nil
-    person = Person.new 'person', Person::MALE, [:czech]
     arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES, scope, action
     arbitration.prepare_sitting *context
     arbitration
@@ -32,8 +34,7 @@ RSpec.describe 'resources_arbitrating' do
     end
 
     it 'disallows woman to do anything' do
-      person = Person.new 'person', Person::FEMALE, [:czech]
-      arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES,
+      arbitration = Admission::ResourceArbitration.new female, RESOURCE_RULES,
           :actions, :anything
       arbitration.prepare_sitting
       expect(
@@ -42,13 +43,11 @@ RSpec.describe 'resources_arbitrating' do
     end
 
     it 'allow woman-count to do anything in her country' do
-      person = Person.new 'person', Person::FEMALE, [:czech]
-      arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES,
+      arbitration = Admission::ResourceArbitration.new female, RESOURCE_RULES,
           :actions, :anything
       arbitration.prepare_sitting :czech
       expect(
           arbitration.rule_per_privilege privilege(:human, :count, context: [:czech])
-
       ).to eql(true)
     end
 
@@ -106,25 +105,140 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'allows lord to impose draft' do
       expect(
-          actions_rule :impose_draft,
-              privilege(:vassal, :lord)
+          actions_rule :impose_draft, privilege(:vassal, :lord)
       ).to eql(true)
     end
 
     it 'forbids emperor to impose draft because of inheritance' do
-      with_bug do
-        expect(
-            actions_rule :impose_draft,
-                privilege(:emperor)
-        ).to eql(:forbidden)
-      end
+      expect(
+          actions_rule :impose_draft, privilege(:emperor)
+      ).to eql(:forbidden)
     end
 
     it 'allows emperor to act as god' do
       expect(
-          actions_rule :act_as_god,
-              privilege(:emperor)
+          actions_rule :act_as_god, privilege(:emperor)
       ).to eql(true)
+    end
+
+  end
+
+  describe 'resources scope' do
+
+    it 'allows vassal to see only himself' do
+      expect(
+          rule person, :show, privilege(:vassal)
+      ).to eql(true)
+
+      person = Person.new 'person', Person::FEMALE, [:czech]
+      expect(
+          rule person, :show, privilege(:vassal)
+      ).to eql(false)
+    end
+
+    it 'passes nil as argument if resource-arbiter accessed by name-scope' do
+      expect{
+        rule :persons, :show, privilege(:vassal)
+      }.to raise_error('person is nil')
+    end
+
+    it 'allows vassal to list persons only per his countries' do
+      expect(
+          rule :persons, :index, privilege(:vassal, context: [:czech])
+      ).to eql(true)
+
+      expect(
+          rule :persons, :index, privilege(:vassal, context: [:taiwan])
+      ).to eql(false)
+    end
+
+    it 'allows access scope-arbiter by resource' do
+      expect(
+          rule person, :index, privilege(:vassal, context: [:czech])
+      ).to eql(true)
+    end
+
+    it 'allows lord to see any person' do
+      expect(
+          rule person, :show, privilege(:vassal, :lord)
+      ).to eql(true)
+
+      expect(
+          rule female, :show, privilege(:vassal, :lord)
+      ).to eql(true)
+    end
+
+    it 'allows lord to list persons from his country' do
+      expect(
+          rule person, :index, privilege(:vassal, context: [:czech])
+      ).to eql(true)
+
+      expect(
+          rule :persons, :index, privilege(:vassal, context: [:czech])
+      ).to eql(true)
+
+      expect(
+          rule person, :index, privilege(:vassal, context: [:taiwan])
+      ).to eql(false)
+    end
+
+    it 'allows lord to update person that is from his country' do
+      expect(
+          rule female, :update,
+              privilege(:vassal, :lord, context: [:czech])
+      ).to eql(true)
+
+      expect(
+          rule female, :update, privilege(:vassal, :lord)
+      ).to eql(false)
+    end
+
+    it 'disallows lord to update person not from his country' do
+      female = Person.new 'person', Person::FEMALE, [:taiwan]
+
+      expect(
+          rule female, :update,
+              privilege(:vassal, :lord, context: [:czech])
+      ).to eql(false)
+
+      expect(
+          rule female, :update,
+              privilege(:vassal, :lord, context: [:taiwan])
+      ).to eql(false)
+    end
+
+    it 'ensures lord cannot update person accessing him by scope-name' do
+      expect(
+          rule :persons, :update, privilege(:vassal, :lord)
+      ).to eql(false)
+    end
+
+    it 'disallows vassal to update person' do
+      expect(
+          rule person, :update, privilege(:vassal, context: [:czech])
+      ).to eql(false)
+    end
+
+    it 'allows lord to destroy person from his country' do
+      female = Person.new 'person', Person::FEMALE, [:taiwan]
+
+      expect(
+          rule person, :destroy,
+              privilege(:vassal, :lord, context: [:czech])
+      ).to eql(true)
+
+      expect(
+          rule female, :destroy,
+              privilege(:vassal, :lord, context: [:czech])
+      ).to eql(false)
+    end
+
+    it 'disallows lord to destroy apache helicopter' do
+      helicopter = Person.new 'person', Person::APACHE_HELICOPTER, [:czech]
+      expect(
+      rule helicopter, :destroy,
+          privilege(:vassal, :lord, context: [:czech])
+      ).to eql(false)
     end
 
   end

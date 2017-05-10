@@ -6,6 +6,7 @@ PRIVILEGES_ORDER = Admission::Privilege.define_order do
   privilege :emperor,  inherits: %i[vassal human]
 end
 
+
 ACTIONS_RULES = Admission::Arbitration.define_rules PRIVILEGES_ORDER do
 
   privilege :human do
@@ -40,6 +41,7 @@ ACTIONS_RULES = Admission::Arbitration.define_rules PRIVILEGES_ORDER do
   end
 
 end
+
 
 RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
@@ -81,6 +83,7 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
   privilege :vassal do
 
     allow_resource Person, :show do |person, _|
+      raise 'person is nil' unless person
       self == person
     end
 
@@ -102,7 +105,8 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
     end
 
     allow_resource Person, :destroy do |person, country|
-      countries.include?(country) && person.sex != Person::APACHE_HELICOPTER
+      person.countries.include?(country) &&
+          person.sex != Person::APACHE_HELICOPTER
     end
 
   end
