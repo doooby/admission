@@ -32,7 +32,7 @@ class Admission::Privilege
   end
 
   def text_key
-    "#{name}-#{level}"
+    level == BASE_LEVEL_NAME ? name.to_s : "#{name}-#{level}"
   end
 
   def to_s

@@ -43,6 +43,11 @@ class Admission::ResourceArbitration < Admission::Arbitration
     scope || :"#{type.name.downcase}s"
   end
 
+  def self.nested_scope resource, scope
+    resource = type_to_scope resource unless resource.is_a? Symbol
+    "#{resource}:#{scope}".to_sym
+  end
+
   class RulesBuilder < Admission::Arbitration::RulesBuilder
 
     def allow scope, *actions, &block
@@ -62,10 +67,17 @@ class Admission::ResourceArbitration < Admission::Arbitration
       add_allowance_rule actions.flatten, :forbidden, scope: scope.to_sym
     end
 
-    def allow_resource scope, *actions, &block
+    def allow_resource resource, *actions, &block
       raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
       block.instance_variable_set :@resource_arbiter, true if block
-      scope = Admission::ResourceArbitration.type_to_scope(scope).to_sym unless scope.is_a? Symbol
+      resource = Admission::ResourceArbitration.type_to_scope(resource).to_sym unless resource.is_a? Symbol
+      add_allowance_rule actions.flatten, (block || true), scope: resource
+    end
+
+    def allow_nested_for_resource scope, resource, *actions, &block
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      block.instance_variable_set :@resource_arbiter, true if block
+      scope = Admission::ResourceArbitration.nested_scope resource, scope
       add_allowance_rule actions.flatten, (block || true), scope: scope
     end
 
