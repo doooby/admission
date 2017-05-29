@@ -95,7 +95,7 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
   privilege :vassal, :lord do
 
-    allow_resource Person, :show
+    allow_resource(Person, :show){ true }
 
     allow_resource Person, %i[index update] do |person, country|
       allowance = countries.include? country

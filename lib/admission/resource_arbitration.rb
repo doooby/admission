@@ -40,7 +40,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
   def self.type_to_scope type
     scope = @type_to_scope && @type_to_scope.call(type)
-    scope || :"#{type.name.downcase}s"
+    scope ? scope.to_sym : :"#{type.name.downcase}s"
   end
 
   def self.nested_scope resource, scope
@@ -69,16 +69,22 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
     def allow_resource resource, *actions, &block
       raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
-      block.instance_variable_set :@resource_arbiter, true if block
-      resource = Admission::ResourceArbitration.type_to_scope(resource).to_sym unless resource.is_a? Symbol
-      add_allowance_rule actions.flatten, (block || true), scope: resource
+      raise "block not given" unless block
+      block.instance_variable_set :@resource_arbiter, true
+      scope = case resource
+        when Symbol then resource
+        when Array then nested_scope(*resource)
+        else type_to_scope(resource)
+      end
+      add_allowance_rule actions.flatten, block, scope: scope
     end
 
-    def allow_nested_for_resource scope, resource, *actions, &block
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
-      block.instance_variable_set :@resource_arbiter, true if block
-      scope = Admission::ResourceArbitration.nested_scope resource, scope
-      add_allowance_rule actions.flatten, (block || true), scope: scope
+    def type_to_scope resource
+      Admission::ResourceArbitration.type_to_scope resource
+    end
+
+    def nested_scope resource, scope
+      Admission::ResourceArbitration.nested_scope resource, scope
     end
 
     def create_index

@@ -71,13 +71,13 @@ RSpec.describe Admission::Privilege do
   describe '#to_s' do
 
     it 'prints name and level' do
-      expect(privilege.to_s).to eq('<Privilege key=man-base>')
+      expect(privilege.to_s).to eq('<Privilege key=man>')
     end
 
     it 'prints inheritance' do
       privilege_superman.inherits_from privilege
       expect(privilege_superman.to_s).to eq(
-          '<Privilege key=superman-base inherited=[man-base]>'
+          '<Privilege key=superman inherited=[man]>'
       )
     end
 
