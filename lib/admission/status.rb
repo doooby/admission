@@ -26,6 +26,22 @@ class Admission::Status
     end
   end
 
+  def allowed_in_contexts *args
+    return [] unless @privileges
+    arbitration = @arbiter.new person, rules, *args
+
+    @privileges.reduce [] do |list, privilege|
+      context = privilege.context
+
+      unless list.include? context
+        arbitration.prepare_sitting *context
+        list << context if arbitration.rule_per_privilege(privilege).eql? true
+      end
+
+      list
+    end
+  end
+
   private
 
   def process_request arbitration
