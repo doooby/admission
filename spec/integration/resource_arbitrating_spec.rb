@@ -22,6 +22,7 @@ RSpec.describe 'resources_arbitrating' do
   end
 
   def rule scope, action, privilege
+    byebug if $bug
     arbitration(scope, action, privilege.context).rule_per_privilege privilege
   end
 
@@ -236,8 +237,38 @@ RSpec.describe 'resources_arbitrating' do
     it 'disallows lord to destroy apache helicopter' do
       helicopter = Person.new 'person', Person::APACHE_HELICOPTER, [:czech]
       expect(
-      rule helicopter, :destroy,
-          privilege(:vassal, :lord, context: [:czech])
+          rule helicopter, :destroy,
+              privilege(:vassal, :lord, context: [:czech])
+      ).to eql(false)
+    end
+
+  end
+
+  describe 'nested resource scope' do
+
+    it 'allows any lord to list others possessions' do
+      expect(
+          rule [person, :possessions], :index, privilege(:vassal, :lord)
+      ).to eql(true)
+
+      expect(
+          rule [person, :possessions], :index, privilege(:vassal)
+      ).to eql(false)
+    end
+
+    it 'allows lord to update possessions of his country' do
+      expect(
+          rule [person, :possessions], :update, privilege(:vassal, :lord)
+      ).to eql(false)
+
+      expect(
+          rule [person, :possessions], :update,
+              privilege(:vassal, :lord, context: [:czech])
+      ).to eql(true)
+
+      expect(
+          rule [person, :possessions], :update,
+              privilege(:vassal, :lord, context: [:taiwan])
       ).to eql(false)
     end
 
