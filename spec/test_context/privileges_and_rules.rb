@@ -82,7 +82,7 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
   privilege :vassal do
 
-    allow_resource Person, :show do |person, _|
+    allow_resource Person, :show do |person, *|
       raise 'person is nil' unless person
       self == person
     end

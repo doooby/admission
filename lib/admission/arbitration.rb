@@ -7,7 +7,7 @@ class Admission::Arbitration
     @request = request.to_sym
   end
 
-  def prepare_sitting *context
+  def prepare_sitting context=nil
     @context = context
     @decisions = {}
   end
@@ -25,7 +25,7 @@ class Admission::Arbitration
   def make_decision from_rules, privilege
     if from_rules
       decision = from_rules[privilege]
-      decision = @person.instance_exec *@context, &decision if Proc === decision
+      decision = @person.instance_exec @context, &decision if Proc === decision
 
       unless Admission::VALID_DECISION.include? decision
         raise "invalid decision: #{decision}"

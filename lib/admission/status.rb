@@ -34,7 +34,7 @@ class Admission::Status
       context = privilege.context
 
       unless list.include? context
-        arbitration.prepare_sitting *context
+        arbitration.prepare_sitting context
         list << context if arbitration.rule_per_privilege(privilege).eql? true
       end
 
@@ -46,7 +46,7 @@ class Admission::Status
 
   def process_request arbitration
     privileges.any? do |privilege|
-      arbitration.prepare_sitting *privilege.context
+      arbitration.prepare_sitting privilege.context
       arbitration.rule_per_privilege(privilege).eql? true
     end
   end

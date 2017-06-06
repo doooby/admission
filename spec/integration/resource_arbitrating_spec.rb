@@ -7,7 +7,7 @@ RSpec.describe 'resources_arbitrating' do
 
   def arbitration scope, action, context=nil
     arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES, action, scope
-    arbitration.prepare_sitting *context
+    arbitration.prepare_sitting context
     arbitration
   end
 
@@ -48,7 +48,7 @@ RSpec.describe 'resources_arbitrating' do
           :anything, :actions
       arbitration.prepare_sitting :czech
       expect(
-          arbitration.rule_per_privilege privilege(:human, :count, context: [:czech])
+          arbitration.rule_per_privilege privilege(:human, :count, context: :czech)
       ).to eql(true)
     end
 
@@ -69,24 +69,24 @@ RSpec.describe 'resources_arbitrating' do
     it 'allows count and king to impose corvee in his countries' do
       expect(
           actions_rule :impose_corvee,
-              privilege(:human, :count, context: [:czech])
+              privilege(:human, :count, context: :czech)
       ).to eql(true)
 
       expect(
           actions_rule :impose_corvee,
-              privilege(:human, :king, context: [:czech])
+              privilege(:human, :king, context: :czech)
       ).to eql(true)
     end
 
     it 'forbids count and king to impose corvee outside his countries' do
       expect(
           actions_rule :impose_corvee,
-              privilege(:human, :count, context: [:taiwan])
+              privilege(:human, :count, context: :taiwan)
       ).to eql(:forbidden)
 
       expect(
           actions_rule :impose_corvee,
-              privilege(:human, :king, context: [:taiwan])
+              privilege(:human, :king, context: :taiwan)
       ).to eql(:forbidden)
     end
 
@@ -145,17 +145,17 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'allows vassal to list persons only per his countries' do
       expect(
-          rule :persons, :index, privilege(:vassal, context: [:czech])
+          rule :persons, :index, privilege(:vassal, context: :czech)
       ).to eql(true)
 
       expect(
-          rule :persons, :index, privilege(:vassal, context: [:taiwan])
+          rule :persons, :index, privilege(:vassal, context: :taiwan)
       ).to eql(false)
     end
 
     it 'allows access scope-arbiter by resource' do
       expect(
-          rule person, :index, privilege(:vassal, context: [:czech])
+          rule person, :index, privilege(:vassal, context: :czech)
       ).to eql(true)
     end
 
@@ -171,22 +171,22 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'allows lord to list persons from his country' do
       expect(
-          rule person, :index, privilege(:vassal, context: [:czech])
+          rule person, :index, privilege(:vassal, context: :czech)
       ).to eql(true)
 
       expect(
-          rule :persons, :index, privilege(:vassal, context: [:czech])
+          rule :persons, :index, privilege(:vassal, context: :czech)
       ).to eql(true)
 
       expect(
-          rule person, :index, privilege(:vassal, context: [:taiwan])
+          rule person, :index, privilege(:vassal, context: :taiwan)
       ).to eql(false)
     end
 
     it 'allows lord to update person that is from his country' do
       expect(
           rule female, :update,
-              privilege(:vassal, :lord, context: [:czech])
+              privilege(:vassal, :lord, context: :czech)
       ).to eql(true)
 
       expect(
@@ -199,12 +199,12 @@ RSpec.describe 'resources_arbitrating' do
 
       expect(
           rule female, :update,
-              privilege(:vassal, :lord, context: [:czech])
+              privilege(:vassal, :lord, context: :czech)
       ).to eql(false)
 
       expect(
           rule female, :update,
-              privilege(:vassal, :lord, context: [:taiwan])
+              privilege(:vassal, :lord, context: :taiwan)
       ).to eql(false)
     end
 
@@ -216,7 +216,7 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'disallows vassal to update person' do
       expect(
-          rule person, :update, privilege(:vassal, context: [:czech])
+          rule person, :update, privilege(:vassal, context: :czech)
       ).to eql(false)
     end
 
@@ -225,12 +225,12 @@ RSpec.describe 'resources_arbitrating' do
 
       expect(
           rule person, :destroy,
-              privilege(:vassal, :lord, context: [:czech])
+              privilege(:vassal, :lord, context: :czech)
       ).to eql(true)
 
       expect(
           rule female, :destroy,
-              privilege(:vassal, :lord, context: [:czech])
+              privilege(:vassal, :lord, context: :czech)
       ).to eql(false)
     end
 
@@ -238,7 +238,7 @@ RSpec.describe 'resources_arbitrating' do
       helicopter = Person.new 'person', Person::APACHE_HELICOPTER, [:czech]
       expect(
           rule helicopter, :destroy,
-              privilege(:vassal, :lord, context: [:czech])
+              privilege(:vassal, :lord, context: :czech)
       ).to eql(false)
     end
 
@@ -263,12 +263,12 @@ RSpec.describe 'resources_arbitrating' do
 
       expect(
           rule [person, :possessions], :update,
-              privilege(:vassal, :lord, context: [:czech])
+              privilege(:vassal, :lord, context: :czech)
       ).to eql(true)
 
       expect(
           rule [person, :possessions], :update,
-              privilege(:vassal, :lord, context: [:taiwan])
+              privilege(:vassal, :lord, context: :taiwan)
       ).to eql(false)
     end
 

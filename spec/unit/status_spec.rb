@@ -2,7 +2,7 @@ require_relative './_helper'
 
 RSpec.describe Admission::Status do
 
-  def privilege *context
+  def privilege context
     @fake_privilege_klass ||= Struct.new(:context, :inherited)
     @fake_privilege_klass.new context
   end

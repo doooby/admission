@@ -12,9 +12,9 @@ class Admission::ResourceArbitration < Admission::Arbitration
       decision = from_rules[privilege]
       if Proc === decision
         if decision.instance_variable_get :@resource_arbiter
-          decision = @person.instance_exec @resource, *@context, &decision
+          decision = @person.instance_exec @resource, @context, &decision
         else
-          decision = @person.instance_exec *@context, &decision
+          decision = @person.instance_exec @context, &decision
         end
       end
 

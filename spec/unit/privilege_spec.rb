@@ -86,7 +86,7 @@ RSpec.describe Admission::Privilege do
 
   describe '#dup_with_context' do
 
-    it 'self when context is empty' do
+    it 'self when context is nil' do
       p2 = privilege.dup_with_context
       expect(p2).to be_a(Admission::Privilege)
       expect(p2).to equal(privilege)
@@ -94,26 +94,14 @@ RSpec.describe Admission::Privilege do
       p2 = privilege.dup_with_context nil
       expect(p2).to be_a(Admission::Privilege)
       expect(p2).to equal(privilege)
-
-      p2 = privilege.dup_with_context []
-      expect(p2).to be_a(Admission::Privilege)
-      expect(p2).to equal(privilege)
     end
 
-    it 'duplicates with context as array' do
+    it 'duplicates only change context' do
       p2 = privilege.dup_with_context :moon
       expect(p2).to be_a(Admission::Privilege)
       expect(p2).not_to equal(privilege)
       expect(p2).to eql(privilege)
-      expect(p2).to have_attributes(name: :man, level: :base, context: [:moon])
-    end
-
-    it 'duplicates only change context' do
-      p2 = privilege.dup_with_context [:moon]
-      expect(p2).to be_a(Admission::Privilege)
-      expect(p2).not_to equal(privilege)
-      expect(p2).to eql(privilege)
-      expect(p2).to have_attributes(name: :man, level: :base, context: [:moon])
+      expect(p2).to have_attributes(name: :man, level: :base, context: :moon)
     end
 
   end
