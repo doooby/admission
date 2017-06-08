@@ -35,3 +35,6 @@ Gemfile.lock
 ## Specific for InteliJ:
 /.idea
 *.iml
+
+/visualisation/node_modules
+/visualisation/build

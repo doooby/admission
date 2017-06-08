@@ -1,0 +1,22 @@
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#admission-visualisation {
+  flex: 0 0;
+  max-width: 100%;
+  max-height: 100%;
+  border: 1px solid black;
+
+  .splash-message {
+    padding: 10px;
+  }
+}

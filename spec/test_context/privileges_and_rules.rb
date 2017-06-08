@@ -2,7 +2,7 @@
 
 PRIVILEGES_ORDER = Admission::Privilege.define_order do
   privilege :vassal,   levels: %i[lord]
-  privilege :human,      levels: %i[count king]
+  privilege :human,    levels: %i[count king]
   privilege :emperor,  inherits: %i[vassal human]
 end
 
