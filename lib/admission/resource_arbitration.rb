@@ -5,6 +5,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
     scope, @resource = scope_and_resource scope_or_resource
     @rules_index = rules_index[scope] || {}
     @request = request.to_sym
+    @decisions = {}
   end
 
   def make_decision from_rules, privilege

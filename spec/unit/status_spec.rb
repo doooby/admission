@@ -27,14 +27,32 @@ RSpec.describe Admission::Status do
       )
     end
 
-    it 'sets privileges' do
-      instance = Admission::Status.new :person, ['kkk'], :rules, :arbiter
+    it 'sets privileges and freezes them' do
+      instance = Admission::Status.new :person, [:czech], :rules, :arbiter
       expect(instance).to have_inst_vars(
           person: :person,
-          privileges: ['kkk'],
+          privileges: [:czech],
           rules: :rules,
           arbiter: :arbiter
       )
+      expect(instance.privileges).to be_frozen
+    end
+
+    it 'sorts privileges by context' do
+      instance = Admission::Status.new :person, [
+          privilege(nil),
+          privilege(:czech),
+          privilege(15),
+          privilege(:czech),
+          privilege({a: 15}),
+          privilege({a: {f: 1}}),
+          privilege(nil),
+          privilege({a: 15}),
+      ], :rules, :arbiter
+      expect(instance.privileges.map(&:context)).to eq([
+          nil, nil, :czech, :czech, 15, {:a=>15}, {:a=>15}, {:a=>{:f=>1}}
+      ])
+      expect(instance.privileges).to be_frozen
     end
 
   end

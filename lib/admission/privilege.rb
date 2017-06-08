@@ -30,6 +30,12 @@ class Admission::Privilege
     hash == other.hash
   end
 
+  def eql_or_inherits? sought
+    return true if eql? sought
+    return false unless inherited
+    inherited.any?{|pi| pi.eql_or_inherits? sought}
+  end
+
   def text_key
     level == BASE_LEVEL_NAME ? name.to_s : "#{name}-#{level}"
   end

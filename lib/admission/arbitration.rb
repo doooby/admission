@@ -5,9 +5,11 @@ class Admission::Arbitration
     @person = person
     @rules_index = rules_index
     @request = request.to_sym
+    @decisions = {}
   end
 
   def prepare_sitting context=nil
+    return if context == @context
     @context = context
     @decisions = {}
   end

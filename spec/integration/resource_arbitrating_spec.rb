@@ -22,7 +22,6 @@ RSpec.describe 'resources_arbitrating' do
   end
 
   def rule scope, action, privilege
-    byebug if $bug
     arbitration(scope, action, privilege.context).rule_per_privilege privilege
   end
 

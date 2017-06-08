@@ -4,13 +4,25 @@ class Admission::Status
 
   def initialize person, privileges, rules, arbiter
     @person = person
-    @privileges = (privileges.nil? || privileges.empty?) ? nil : privileges
     @rules = rules
     @arbiter = arbiter
+
+    @privileges = if privileges.nil? || privileges.empty?
+      nil
+
+    else
+      grouped = privileges.inject Hash.new do |h, p|
+        hash = p.context.hash rescue nil.hash
+        (h[hash] ||= []) << p
+        h
+      end
+
+      grouped.values.flatten.freeze
+    end
   end
 
   def can? *args
-    return false unless @privileges
+    return false unless privileges
     process_request @arbiter.new(person, rules, *args)
   end
 
@@ -26,11 +38,18 @@ class Admission::Status
     end
   end
 
+  def has? sought
+    return false unless privileges
+
+    list = privilege.context ? privileges.select{|p| p.context == privilege.context} : privileges
+    list.any?{|p| p.eql_or_inherits? sought}
+  end
+
   def allowed_in_contexts *args
-    return [] unless @privileges
+    return [] unless privileges
     arbitration = @arbiter.new person, rules, *args
 
-    @privileges.reduce [] do |list, privilege|
+    privileges.reduce [] do |list, privilege|
       context = privilege.context
 
       unless list.include? context

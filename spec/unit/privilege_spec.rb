@@ -68,6 +68,33 @@ RSpec.describe Admission::Privilege do
   end
 
 
+  describe '#eql_or_inherits?' do
+
+    it 'returns true since it equals sought privilege' do
+      expect(privilege.eql_or_inherits? privilege).to eq(true)
+    end
+
+    it 'return false when does not inherit any' do
+      expect(privilege_superman.eql_or_inherits? privilege_uberman).to eq(false)
+    end
+
+    it 'finds nested inherited privilege and therefore evaluates to true' do
+      top_privilege = new_privilege 'man', 'top'
+      top_privilege.inherits_from new_privilege('man', 'branch'),
+          new_privilege('man', 'middle').tap{|p| p.inherits_from new_privilege('man')}
+
+      sought = new_privilege 'man'
+      expect(top_privilege.eql_or_inherits? sought).to eq(true)
+      expect(top_privilege.eql_or_inherits? new_privilege('man', 'nope')).to eq(false)
+    end
+
+    it 'ignores context' do
+      expect(privilege.eql_or_inherits? privilege.dup_with_context(:czech)).to eq(true)
+    end
+
+  end
+
+
   describe '#to_s' do
 
     it 'prints name and level' do
