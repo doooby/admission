@@ -41,7 +41,7 @@ class Admission::Status
   def has? sought
     return false unless privileges
 
-    list = privilege.context ? privileges.select{|p| p.context == privilege.context} : privileges
+    list = sought.context ? privileges.select{|p| p.context == sought.context} : privileges
     list.any?{|p| p.eql_or_inherits? sought}
   end
 
