@@ -1,22 +1,143 @@
+$border-color: black;
+$border-color2: #91287b;
+$bg-color: #feebff;
+
+$border: 5;
+
+@function px($_size) {
+  @return #{$_size}px;
+}
+
+@mixin no-select () {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 html, body {
   height: 100%;
 }
 
 body {
   margin: 0;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  background-color: #717171;
 }
 
 #admission-visualisation {
   flex: 0 0;
   max-width: 100%;
   max-height: 100%;
-  border: 1px solid black;
+  background-color: $bg-color;
 
   .splash-message {
-    padding: 10px;
+    padding: px(2 * $border);
   }
+
+  .panels-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+
+    > li {
+      margin: px($border);
+      margin-left: 0;
+      padding: px(2 * $border);
+      border: 3px outset $border-color;
+      cursor: pointer;
+      font-weight: bold;
+      &:first-of-type { margin-left: px($border); }
+
+      &.active {
+        border-color: $border-color2;
+        border-style: inset;
+        color: $border-color2;
+      }
+    }
+  }
+
+  .panel {
+    padding: px($border);
+  }
+
+  .controls-row {
+    > * {
+      display: inline-block;
+      margin-left: px($border);
+      &:first-child { margin-left: 0; }
+    }
+  }
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.input_text {
+  padding: px($border);
+  margin: 0;
+  outline: none;
+  border: 1px solid $border-color;
+  border-radius: 0;
+  background-color: white;
+  &:active {
+    border: 1px solid $border-color;
+    outline: none;
+  }
+}
+
+.button {
+  padding: px($border);
+  margin: 0;
+  border: 1px solid $border-color;
+  border-radius: 0;
+  background-color: white;
+  &:hover {
+    background-color: white;
+  }
+}
+
+.controls-select {
+  > ._inputs {
+    display: flex;
+    > input {
+      flex: 1 1;
+      border-right: none;
+      max-width: px(100);
+    }
+    > button {
+      border-left: none;
+    }
+  }
+
+  > ._dropdown {
+    position: relative;
+    > ul {
+      background-color: white;
+      position: absolute;
+      width: 100%;
+      border: 1px solid $border-color;
+      border-top: none;
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      > li {
+        @include no-select();
+        padding: px($border);
+        border: 1px solid transparent;
+        &.selected {
+          background-color: $border-color2;
+          color: white;
+        }
+        &:hover {
+          background-color: $bg-color;
+        }
+      }
+    }
+  }
+
 }

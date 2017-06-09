@@ -9,7 +9,14 @@ function admissionApp (state, action) {
     switch (action.type) {
         case 'APP_READY':
             return Object.assign({}, state, {
-                loaded: true
+                loaded: true,
+                panel: 'privileges'
+            });
+            break;
+
+        case 'PANEL_CHANGE':
+            return Object.assign({}, state, {
+                panel: action.panel
             });
             break;
 

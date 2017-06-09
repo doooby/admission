@@ -13,6 +13,7 @@
     "classnames": "^2.2.5",
     "css-loader": "^0.28.4",
     "node-sass": "^4.5.3",
+    "normalize.css": "^7.0.0",
     "preact": "^8.1.0",
     "redux": "^3.6.0",
     "sass-loader": "^6.0.5",

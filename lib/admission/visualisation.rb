@@ -73,7 +73,7 @@ __END__
 %html
   %head
     %title= 'Admission'
-  %body
+  %body.flex-column
     = yield
 
 @@ index

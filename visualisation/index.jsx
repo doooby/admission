@@ -1,3 +1,4 @@
+import 'normalize.css';
 import './style.scss';
 import 'whatwg-fetch';
 
@@ -9,10 +10,8 @@ import AppContainer from './components/app_container';
 
 document.addEventListener('DOMContentLoaded',function(){
 
-    const app = {
-        store: createStore(admissionApp),
-        container: document.getElementById('admission-visualisation')
-    };
+    app.store = createStore(admissionApp);
+    app.container = document.getElementById('admission-visualisation');
     window.app = app;
 
     preact.render(
@@ -49,3 +48,85 @@ document.addEventListener('DOMContentLoaded',function(){
     }
 
 });
+
+const app = {
+
+    listPrivilegesNames: function () {
+        return this.admission.privileges
+            .map(p => p.name)
+            .filter((name, i, arr) => {
+                return i === arr.indexOf(name);
+            });
+    },
+
+    listPrivilegeLevels: function (name) {
+        if (!name) return [];
+        return this.admission.privileges
+            .filter(p => p.name === name)
+            .map(p => p.level);
+    },
+
+    debounce: function (func, wait, immediate) {
+        let timeout, context, args;
+
+        if (immediate) {
+            return function () {
+                let call_now = true;
+                context = this;
+                args = arguments;
+
+                if (timeout) {
+                    call_now = false;
+                    clearTimeout(timeout);
+                }
+                timeout = setTimeout(function () {
+                    timeout = null;
+                }, wait);
+                if (call_now) func.apply(context, args);
+            };
+
+        } else {
+            return function () {
+                context = this;
+                args = arguments;
+
+                if (timeout) clearTimeout(timeout);
+
+                timeout = setTimeout(function () {
+                    timeout = null;
+                    func.apply(context, args);
+                }, wait);
+            };
+        }
+    },
+
+    throttle: function (callback, time, immediate) {
+        let timeout, call_at_end, context, args;
+
+        return function () {
+            context = this;
+            args = arguments;
+
+            // throttling block
+            if (timeout) {
+                call_at_end = true;
+                return;
+            }
+
+            // throttler - fire only if there was event in the mean-time
+            let timeout_f = function () {
+                timeout = null;
+                if (call_at_end) {
+                    call_at_end = false;
+                    timeout = setTimeout(timeout_f, time);
+                    callback.apply(context, args);
+                }
+            };
+
+            call_at_end = true;
+            if (immediate) timeout_f();
+            else timeout = setTimeout(timeout_f, time);
+        };
+    }
+
+};
