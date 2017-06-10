@@ -21,7 +21,7 @@ export default class AppContainer extends preact.Component {
             <code>{load_fail}</code>
         </div>;
 
-        return <div>
+        return <div className="admission-app-container">
             <ul className="panels-list">
 
                 <li

@@ -6,13 +6,11 @@ export default class PrivilegeSelect extends preact.Component {
     constructor (props) {
         super(props);
 
-        this.state = {
-            name: '',
-            level: ''
-        };
+        this.state = props.app.keyToPrivilege(props.defaultValue);
 
         this.onNameSelected = this.onNameSelected.bind(this);
         this.onLevelSelected = this.onLevelSelected.bind(this);
+        this.onClearSelection = this.onClearSelection.bind(this);
     }
 
     render ({app}, {name, level}) {
@@ -32,8 +30,23 @@ export default class PrivilegeSelect extends preact.Component {
                 all_items={app.listPrivilegeLevels(name)}
                 onSelect={this.onLevelSelected}
             />
+
+            <button
+                type="button"
+                tabIndex="-1"
+                className="button"
+                onClick={this.onClearSelection}>
+                Clear
+            </button>
         </div>;
     }
+
+    componentWillReceiveProps (new_props) {
+        if (new_props.defaultValue !== this.props.defaultValue) {
+            this.setState(this.props.app.keyToPrivilege(new_props.defaultValue));
+        }
+    }
+
 
     onNameSelected (name) {
         let level = this.state.level;
@@ -46,6 +59,12 @@ export default class PrivilegeSelect extends preact.Component {
         const name = this.state.name;
         this.setState({level});
         this.props.onChanged({name, level});
+    }
+
+    onClearSelection () {
+        const selection = {name: '', level: ''};
+        this.setState(selection);
+        this.props.onChanged(selection);
     }
 
 }

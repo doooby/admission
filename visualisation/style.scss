@@ -1,6 +1,7 @@
 $border-color: black;
 $border-color2: #91287b;
-$bg-color: #feebff;
+$bg-color: #f7ccff;
+$bg-color2: #d1aeff;
 
 $border: 5;
 
@@ -22,18 +23,26 @@ html, body {
 body {
   margin: 0;
   align-items: center;
-  justify-content: center;
+  //justify-content: center;
   background-color: #717171;
+  overflow-y: scroll;
 }
 
 #admission-visualisation {
   flex: 0 0;
   max-width: 100%;
   max-height: 100%;
-  background-color: $bg-color;
 
   .splash-message {
     padding: px(2 * $border);
+  }
+
+  .admission-app-container {
+    //max-height: 100%;
+    //overflow-x: hidden;
+    //overflow-y: auto;
+    background-color: $bg-color;
+    margin: px(10 * $border) 0;
   }
 
   .panels-list {
@@ -63,11 +72,23 @@ body {
     padding: px($border);
   }
 
-  .controls-row {
-    > * {
-      display: inline-block;
-      margin-left: px($border);
-      &:first-child { margin-left: 0; }
+  .inheritance-list {
+    width: 500px;
+    overflow: auto;
+    padding-top: px($border);
+
+    .privilege-row {
+      padding-top: px($border);
+      line-height: px(25);
+      .tab {
+        display: inline-block;
+        width: px(4 * $border);
+      }
+      .name {
+        display: inline-block;
+        margin-left: px(2 * $border);
+      }
+
     }
   }
 }
@@ -91,13 +112,22 @@ body {
 }
 
 .button {
+  display: inline-block;
   padding: px($border);
   margin: 0;
   border: 1px solid $border-color;
   border-radius: 0;
   background-color: white;
   &:hover {
-    background-color: white;
+    background-color: $bg-color2;
+    color: $border-color2;
+    border-color: $border-color2;
+    cursor: pointer;
+  }
+
+  &.small {
+    font-size: 80%;
+    padding: px($border / 2);
   }
 }
 
@@ -135,9 +165,18 @@ body {
         }
         &:hover {
           background-color: $bg-color;
+          color: inherit;
         }
       }
     }
   }
 
+}
+
+.controls-row {
+  > * {
+    display: inline-block;
+    margin-left: px($border);
+    &:first-child { margin-left: 0; }
+  }
 }

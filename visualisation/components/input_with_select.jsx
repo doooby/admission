@@ -35,6 +35,7 @@ export default class InputWithSelect extends preact.Component {
                     value={text}/>
 
                 <button
+                    type="button"
                     tabIndex="-1"
                     className="button"
                     onClick={this.toggleList}>

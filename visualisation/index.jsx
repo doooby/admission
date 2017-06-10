@@ -51,7 +51,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
 const app = {
 
-    listPrivilegesNames: function () {
+    getPrivilegeData (key) {
+        const {name, level} = app.keyToPrivilege(key);
+        return this.admission.privileges
+            .find(p => p.name === name && p.level === level);
+    },
+
+    listPrivilegesNames () {
         return this.admission.privileges
             .map(p => p.name)
             .filter((name, i, arr) => {
@@ -59,14 +65,26 @@ const app = {
             });
     },
 
-    listPrivilegeLevels: function (name) {
+    listPrivilegeLevels (name) {
         if (!name) return [];
         return this.admission.privileges
             .filter(p => p.name === name)
             .map(p => p.level);
     },
 
-    debounce: function (func, wait, immediate) {
+    privilegeToKey: function ({name, level}) {
+        if (!level || level === 'base') return name || '';
+        return `${name}-${level}`
+    },
+
+    keyToPrivilege (key) {
+        if (!key) return {name: '', level: ''};
+        let [name, level] = key.split('-');
+        if (!level) level = 'base';
+        return {name, level};
+    },
+
+    debounce (func, wait, immediate) {
         let timeout, context, args;
 
         if (immediate) {
@@ -100,7 +118,7 @@ const app = {
         }
     },
 
-    throttle: function (callback, time, immediate) {
+    throttle (callback, time, immediate) {
         let timeout, call_at_end, context, args;
 
         return function () {
