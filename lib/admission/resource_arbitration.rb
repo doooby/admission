@@ -109,6 +109,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
         index
       end
 
+      index_instance.values.each do |h|
+        h.values.each &:freeze
+        h.freeze
+      end
       index_instance.freeze
     end
 

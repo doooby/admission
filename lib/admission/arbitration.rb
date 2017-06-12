@@ -120,6 +120,7 @@ class Admission::Arbitration
         index
       end
 
+      index_instance.values.each &:freeze
       index_instance.freeze
     end
 
