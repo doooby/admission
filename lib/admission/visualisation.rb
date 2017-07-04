@@ -38,8 +38,13 @@ class Admission::Visualisation < Sinatra::Base
 
       arr
     end
-    js_data[:top_levels] = top_levels
+
     js_data[:privileges] = privileges
+    js_data[:top_levels] = top_levels
+    js_data[:levels] = privileges.inject Hash.new do |hash, p|
+      (hash[p[:name]] ||= []) << p[:level]
+      hash
+    end
 
     rules = if arbitrator == Admission::Arbitration
       rules.to_a.map do |scope, index|

@@ -1,6 +1,7 @@
 import preact from 'preact';
 import PrivilegesPanel from './privileges_panel';
 import classnames from 'classnames';
+import RulesPanel from "./rules_panel";
 
 export default class AppContainer extends preact.Component {
 

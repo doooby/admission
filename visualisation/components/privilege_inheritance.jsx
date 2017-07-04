@@ -24,10 +24,10 @@ export default class PrivilegeInheritance extends preact.Component {
         }
         if (children) children = find_privileges(app, children);
 
-        for (let i=0; i<level; i+=1) tabs.push(<span className="tab">&nbsp;</span>);
+        for (let i=0; i<level; i+=1) tabs.push(<span className="list-row-tab">&nbsp;</span>);
         if (children) {
             tabs.push(<button
-                className="button small tab"
+                className="button small list-row-tab"
                 type="button"
                 onClick={this.toggleRollOut.bind(this, !unrolled)}>
                 {unrolled ? '\u21B0' : '\u21B3'}
@@ -35,13 +35,13 @@ export default class PrivilegeInheritance extends preact.Component {
 
         }
         else {
-            tabs.push(<span className="tab"> &#8594;</span>);
+            tabs.push(<span className="list-row-tab"> &#8594;</span>);
 
         }
 
-        return <div className="privilege-row">
+        return <div className="nested-list-row">
             {tabs}
-            <span className="name">{text}</span>
+            <span className="list-row-content">{text}</span>
             {unrolled && children && children.map(p =>
                 <PrivilegeInheritance
                     app={app}

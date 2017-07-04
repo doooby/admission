@@ -6,13 +6,18 @@ const init_state = {
 function admissionApp (state, action) {
     if (state === undefined) { return init_state; }
 
-    switch (action.type) {
-        case 'APP_READY':
+    if (!state.loaded) {
+        if (action.type === 'APP_READY') {
             return Object.assign({}, state, {
                 loaded: true,
                 panel: 'privileges'
             });
-            break;
+        }
+
+        return state;
+    }
+
+    switch (action.type) {
 
         case 'PANEL_CHANGE':
             return Object.assign({}, state, {

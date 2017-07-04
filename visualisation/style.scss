@@ -1,7 +1,7 @@
 $border-color: black;
-$border-color2: #91287b;
-$bg-color: #f7ccff;
-$bg-color2: #d1aeff;
+$border-color2: #6d3291;
+$bg-color: #e8daff;
+$bg-color2: #c6a6ff;
 
 $border: 5;
 
@@ -35,12 +35,11 @@ body {
 
   .splash-message {
     padding: px(2 * $border);
+    background-color: $bg-color;
+    margin: px(10 * $border) 0;
   }
 
   .admission-app-container {
-    //max-height: 100%;
-    //overflow-x: hidden;
-    //overflow-y: auto;
     background-color: $bg-color;
     margin: px(10 * $border) 0;
   }
@@ -72,25 +71,6 @@ body {
     padding: px($border);
   }
 
-  .inheritance-list {
-    width: 500px;
-    overflow: auto;
-    padding-top: px($border);
-
-    .privilege-row {
-      padding-top: px($border);
-      line-height: px(25);
-      .tab {
-        display: inline-block;
-        width: px(4 * $border);
-      }
-      .name {
-        display: inline-block;
-        margin-left: px(2 * $border);
-      }
-
-    }
-  }
 }
 
 .flex-column {
@@ -179,4 +159,27 @@ body {
     margin-left: px($border);
     &:first-child { margin-left: 0; }
   }
+}
+
+.nested-list {
+  width: 500px;
+  padding-top: px($border);
+
+  .nested-list-row {
+    padding-top: px($border);
+    line-height: px(25);
+
+    .list-row-tab {
+      display: inline-block;
+      width: px(4 * $border);
+    }
+
+    .list-row-content {
+      display: inline-block;
+      margin-left: px(2 * $border);
+    }
+
+
+  }
+
 }

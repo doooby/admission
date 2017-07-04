@@ -13,7 +13,8 @@ export default class InputWithSelect extends preact.Component {
 
         this.setParentRef = ref => this.element = ref;
         this.setListRef = ref => this.list = ref;
-        this.onKeyDown = props.app.debounce(this.onKeyDown.bind(this), 200);
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.onTextChange = props.app.debounce(this.onTextChange.bind(this), 400);
         this.toggleList = props.app.debounce(this.toggleList.bind(this), 400, true);
         this.closeList = this.closeList.bind(this);
         this.onSelected = this.onSelected.bind(this);
@@ -73,7 +74,10 @@ export default class InputWithSelect extends preact.Component {
 
     onKeyDown (e) {
         if (this.list && this.list.onKeyDown(e)) return;
+        this.onTextChange(e);
+    }
 
+    onTextChange (e) {
         const text = e.target.value.trim();
         let matching = null;
         if ((text && text !==this.state.text) || e.keyCode === 40) {
