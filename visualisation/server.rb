@@ -18,8 +18,8 @@ Admission::Visualisation.set :js_entry,
 Admission::Visualisation.set :admission_data,
     {
         order: PRIVILEGES_ORDER,
-        rules: ACTIONS_RULES,
-        arbitrator: Admission::Arbitration
+        rules: RESOURCE_RULES,
+        arbitrator: Admission::ResourceArbitration
     }
 
 

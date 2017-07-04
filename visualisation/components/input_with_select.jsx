@@ -26,7 +26,7 @@ export default class InputWithSelect extends preact.Component {
 
         return <div
             ref={this.setParentRef}
-            className="controls-select">
+            className="select_box">
 
             <div className="_inputs">
                 <input

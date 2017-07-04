@@ -1,4 +1,5 @@
 import preact from 'preact';
+import classnames from 'classnames';
 import InputWithSelect from './input_with_select';
 import NestedListRow from './nested_list_row';
 
@@ -7,45 +8,57 @@ export default class RulesPanel extends preact.Component {
     constructor (props) {
         super(props);
 
+        this.onToggleRollDownAll = this.onToggleRollDownAll.bind(this);
         this.onScopeSelected = this.onScopeSelected.bind(this);
         this.onActionSelected = this.onActionSelected.bind(this);
     }
 
-    render ({app}, {scope, action}) {
+    render ({app}, {scope, action, roll_down_all}) {
         const rules = filter_index_for_scope(app.admission.rules, scope);
         const scopes = reduce_scopes(rules, {action});
 
         return <div className="panel">
-            <div className="controls-group">
-                <InputWithSelect
-                    defaultText={scope}
-                    placeholder="scope"
-                    enterable
-                    all_items={Object.keys(rules)}
-                    onSelect={this.onScopeSelected}
-                />
+            <div className="controls">
+                <div className="controls-group">
+                    <div className={classnames('check_box', roll_down_all && 'checked')}
+                         onClick={this.onToggleRollDownAll}>
+                        {"\u25BC"}
+                    </div>
+                </div>
 
-                <InputWithSelect
-                    defaultText={action}
-                    placeholder="action"
-                    enterable
-                    all_items={list_actions(rules)}
-                    onSelect={this.onActionSelected}
-                />
+                <div className="controls-group">
+                    <InputWithSelect
+                        defaultText={scope}
+                        placeholder="scope"
+                        enterable
+                        all_items={Object.keys(rules)}
+                        onSelect={this.onScopeSelected}
+                    />
+
+                    <InputWithSelect
+                        defaultText={action}
+                        placeholder="action"
+                        enterable
+                        all_items={list_actions(rules)}
+                        onSelect={this.onActionSelected}
+                    />
+                </div>
             </div>
-
-            <br/>
 
             <ul className="nested-list">
                 {scopes.map(scope =>
                     <NestedListRow
                         app={app}
                         content={scope.content}
-                        nested_rows={scope.nested_rows}
-                        level={0}/>
+                        nestedRows={scope.nested_rows}
+                        defaultUnrolled={roll_down_all}/>
                 )}
             </ul>
         </div>;
+    }
+
+    onToggleRollDownAll () {
+        this.setState({roll_down_all: !this.state.roll_down_all});
     }
 
     onScopeSelected (scope) {
@@ -68,12 +81,16 @@ function filter_index_for_scope (rules, scope) {
 }
 
 function reduce_scopes (index, {action}) {
-    return Object.keys(index).map(scope => {
-        return {
-            content: scope,
-            nested_rows: reduce_actions(index[scope], {action})
-        };
-    });
+    return Object.keys(index)
+        .map(scope => {
+            const actions = reduce_actions(index[scope], {action});
+            if (!actions.length) return null;
+            return {
+                content: scope,
+                nested_rows: actions
+            };
+        })
+        .filter(item => item);
 }
 
 function reduce_actions (index, {action}) {

@@ -6,31 +6,38 @@ export default class NestedListRow extends preact.Component {
         super(props);
 
         this.state = {
-            unrolled: false
+            unrolled: !!props.defaultUnrolled
         };
 
         this.toggleRollOut = this.toggleRollOut.bind(this);
     }
 
-    render ({app, content, level, nested_rows}, {unrolled}) {
+    render ({app, content, nestedRows}, {unrolled}) {
         return <li>
             <div onClick={this.toggleRollOut} className="nested-list-content">
-                {nested_rows && <span className="icon">
+                {nestedRows && <span className="icon">
                     {unrolled ? '\u25B6' : '\u25BC'}
                     </span>
                 }
                 <span className="content">{content}</span>
             </div>
-            {unrolled && nested_rows && <ul className="nested-list">{
-                nested_rows.map(row =>
+            {unrolled && nestedRows && <ul className="nested-list">{
+                nestedRows.map(row =>
                     <NestedListRow
                         app={app}
                         content={row.content}
-                        nested_rows={row.nested_rows}
-                        level={level + 1}/>
+                        nestedRows={row.nested_rows}
+                        defaultUnrolled={this.props.defaultUnrolled}
+                        />
                 )
             }</ul>}
         </li>;
+    }
+
+    componentWillReceiveProps ({defaultUnrolled}) {
+        if (defaultUnrolled !== this.props.defaultUnrolled) {
+            this.setState({unrolled: !!defaultUnrolled});
+        }
     }
 
     toggleRollOut () {

@@ -39,12 +39,11 @@ export default class PrivilegeSelect extends preact.Component {
         </div>;
     }
 
-    componentWillReceiveProps (new_props) {
-        if (new_props.defaultValue !== this.props.defaultValue) {
-            this.setState(this.props.app.keyToPrivilege(new_props.defaultValue));
+    componentWillReceiveProps ({defaultValue}) {
+        if (defaultValue !== this.props.defaultValue) {
+            this.setState(this.props.app.keyToPrivilege(defaultValue));
         }
     }
-
 
     onNameSelected (name) {
         let level = this.state.level;

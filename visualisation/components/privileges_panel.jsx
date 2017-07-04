@@ -1,4 +1,5 @@
 import preact from 'preact';
+import classnames from 'classnames';
 import PrivilegeSelect from './privilege_select';
 import NestedListRow from './nested_list_row';
 
@@ -8,31 +9,44 @@ export default class PrivilegesPanel extends preact.Component {
         super(props);
 
         this.state = {
+            roll_down_all: true,
             privilege_key: ''
         };
 
+        this.onToggleRollDownAll = this.onToggleRollDownAll.bind(this);
         this.onPrivilegeSelected = this.onPrivilegeSelected.bind(this);
     }
 
-    render ({app}, {privilege_key}) {
+    render ({app}, {privilege_key, roll_down_all}) {
         const root_row = reduce_nested_data(app, {key: privilege_key});
 
         return <div className="panel">
-            <PrivilegeSelect
-                app={app}
-                defaultValue={privilege_key}
-                onChanged={this.onPrivilegeSelected}/>
+            <div className="controls">
+                <div className="controls-group">
+                    <div className={classnames('check_box', roll_down_all && 'checked')}
+                         onClick={this.onToggleRollDownAll}>
+                        {"\u25BC"}
+                    </div>
+                </div>
 
-            <br/>
+                <PrivilegeSelect
+                    app={app}
+                    defaultValue={privilege_key}
+                    onChanged={this.onPrivilegeSelected}/>
+            </div>
 
             <ul className="nested-list">
                 <NestedListRow
                 app={app}
                 content={root_row.content}
-                nested_rows={root_row.nested_rows}
-                level={0}/>
+                nestedRows={root_row.nested_rows}
+                defaultUnrolled={roll_down_all}/>
             </ul>
         </div>;
+    }
+
+    onToggleRollDownAll () {
+        this.setState({roll_down_all: !this.state.roll_down_all});
     }
 
     onPrivilegeSelected (privilege) {
