@@ -14,9 +14,8 @@ export default class PrivilegeSelect extends preact.Component {
     }
 
     render ({app}, {name, level}) {
-        return <div className="controls-row">
+        return <div className="controls-group">
             <InputWithSelect
-                app={app}
                 defaultText={name}
                 placeholder="name"
                 all_items={app.listPrivilegesNames()}
@@ -24,7 +23,6 @@ export default class PrivilegeSelect extends preact.Component {
             />
 
             <InputWithSelect
-                app={app}
                 defaultText={level}
                 placeholder="level"
                 all_items={app.listPrivilegeLevels(name)}

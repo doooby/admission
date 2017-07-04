@@ -10,7 +10,7 @@ function admissionApp (state, action) {
         if (action.type === 'APP_READY') {
             return Object.assign({}, state, {
                 loaded: true,
-                panel: 'privileges'
+                panel: 'rules'
             });
         }
 

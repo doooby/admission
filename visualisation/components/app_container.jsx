@@ -1,6 +1,7 @@
 import preact from 'preact';
-import PrivilegesPanel from './privileges_panel';
 import classnames from 'classnames';
+
+import PrivilegesPanel from './privileges_panel';
 import RulesPanel from "./rules_panel";
 
 export default class AppContainer extends preact.Component {
@@ -69,6 +70,9 @@ export default class AppContainer extends preact.Component {
                 return <PrivilegesPanel app={app} />;
                 break;
 
+            case 'rules':
+                return <RulesPanel app={app}/>;
+                break;
         }
     }
 }

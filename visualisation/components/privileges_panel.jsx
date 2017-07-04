@@ -23,6 +23,8 @@ export default class PrivilegesPanel extends preact.Component {
                 defaultValue={privilege_key}
                 onChanged={this.onPrivilegeSelected}/>
 
+            <br/>
+
             <div className="nested-list">
                 <NestedListRow
                 app={app}

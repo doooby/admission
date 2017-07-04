@@ -1,5 +1,6 @@
 import preact from 'preact';
 import classnames from 'classnames';
+import helpers from '../helpers';
 
 export default class InputWithSelect extends preact.Component {
 
@@ -14,13 +15,13 @@ export default class InputWithSelect extends preact.Component {
         this.setParentRef = ref => this.element = ref;
         this.setListRef = ref => this.list = ref;
         this.onKeyDown = this.onKeyDown.bind(this);
-        this.onTextChange = props.app.debounce(this.onTextChange.bind(this), 400);
-        this.toggleList = props.app.debounce(this.toggleList.bind(this), 400, true);
+        this.onTextChange = helpers.debounce(this.onTextChange.bind(this), 400);
+        this.toggleList = helpers.debounce(this.toggleList.bind(this), 400, true);
         this.closeList = this.closeList.bind(this);
         this.onSelected = this.onSelected.bind(this);
     }
 
-    render ({app, placeholder}, {text, matching}) {
+    render ({placeholder}, {text, matching}) {
         if (!matching) this.list = null;
 
         return <div
@@ -46,7 +47,6 @@ export default class InputWithSelect extends preact.Component {
 
             {matching && <DropdownList
                 ref={this.setListRef}
-                app={app}
                 items={matching}
                 toSelect={this.onSelected}
                 toClose={this.closeList}
@@ -113,7 +113,7 @@ class DropdownList extends preact.Component {
         this.state = {selected: -1};
     }
 
-    render ({app, items, toSelect}, {selected}) {
+    render ({items, toSelect}, {selected}) {
         return <div
             className="_dropdown">
             <ul>
