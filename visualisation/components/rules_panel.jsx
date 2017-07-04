@@ -7,22 +7,28 @@ export default class RulesPanel extends preact.Component {
     constructor (props) {
         super(props);
 
-        this.state = {
-            // rules_list: reduce_rules_to_list(props.app.admission.rules)
-        };
-
+        this.onScopeSelected = this.onScopeSelected.bind(this);
         this.onActionSelected = this.onActionSelected.bind(this);
     }
 
-    render ({app}, {action}) {
-        const rules = {'non-scoped': app.admission.rules};
-        const scopes = reduce_scopes(app, rules, {action});
+    render ({app}, {scope, action}) {
+        const rules = filter_index_for_scope(app.admission.rules, scope);
+        const scopes = reduce_scopes(rules, {action});
 
         return <div className="panel">
             <div className="controls-group">
                 <InputWithSelect
+                    defaultText={scope}
+                    placeholder="scope"
+                    enterable
+                    all_items={Object.keys(rules)}
+                    onSelect={this.onScopeSelected}
+                />
+
+                <InputWithSelect
                     defaultText={action}
                     placeholder="action"
+                    enterable
                     all_items={list_actions(rules)}
                     onSelect={this.onActionSelected}
                 />
@@ -30,7 +36,7 @@ export default class RulesPanel extends preact.Component {
 
             <br/>
 
-            <div className="nested-list">
+            <ul className="nested-list">
                 {scopes.map(scope =>
                     <NestedListRow
                         app={app}
@@ -38,8 +44,12 @@ export default class RulesPanel extends preact.Component {
                         nested_rows={scope.nested_rows}
                         level={0}/>
                 )}
-            </div>
+            </ul>
         </div>;
+    }
+
+    onScopeSelected (scope) {
+        this.setState({scope});
     }
 
     onActionSelected (action) {
@@ -48,34 +58,37 @@ export default class RulesPanel extends preact.Component {
 
 }
 
-function reduce_scopes (app, index, {action}) {
+function filter_index_for_scope (rules, scope) {
+    if (!scope) return rules;
+    const filtered = Object.assign({}, rules);
+    Object.keys(filtered).forEach(key => {
+        if (!key.includes(scope)) delete filtered[key]
+    });
+    return filtered;
+}
+
+function reduce_scopes (index, {action}) {
     return Object.keys(index).map(scope => {
         return {
             content: scope,
-            nested_rows: reduce_actions(app, index[scope], {action})
+            nested_rows: reduce_actions(index[scope], {action})
         };
     });
 }
 
-function reduce_actions (app, index, {action}) {
-    if (action) {
-        const action_index = index[action];
-        if (!action_index) return;
-        return [{
-            content: action,
-            nested_rows: reduce_privileges(app, action_index)
-        }];
-    }
+function reduce_actions (index, {action}) {
+    let selected = Object.keys(index);
+    if (action) selected = selected.filter(a => a.includes(action));
 
-    return Object.keys(index).map(action => {
+    return selected.map(action => {
         return {
             content: action,
-            nested_rows: reduce_privileges(app, index[action])
+            nested_rows: reduce_privileges(index[action])
         }
     });
 }
 
-function reduce_privileges (app, index) {
+function reduce_privileges (index) {
     return Object.keys(index).map(privilege_key => {
         return {
             content: `${privilege_key}: ${index[privilege_key]}`

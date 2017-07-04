@@ -47,8 +47,7 @@ class Admission::Visualisation < Sinatra::Base
     end
 
     rules = if arbitrator == Admission::Arbitration
-      rules.to_a.map do |scope, index|
-
+      single_scope = rules.to_a.map do |scope, index|
         index = index.to_a.map do |privilege, rule|
           if rule.is_a? Proc
             rule = 'proc'
@@ -59,6 +58,9 @@ class Admission::Visualisation < Sinatra::Base
 
         [scope, Hash[index]]
       end
+      [['-non-scoped-', Hash[single_scope]]]
+
+    # elsif arbitrator == ResourceArbitration
 
     else
       raise "not implemented for #{arbitrator.name}"

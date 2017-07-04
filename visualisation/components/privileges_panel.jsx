@@ -25,13 +25,13 @@ export default class PrivilegesPanel extends preact.Component {
 
             <br/>
 
-            <div className="nested-list">
+            <ul className="nested-list">
                 <NestedListRow
                 app={app}
                 content={root_row.content}
                 nested_rows={root_row.nested_rows}
                 level={0}/>
-            </div>
+            </ul>
         </div>;
     }
 
@@ -53,7 +53,7 @@ function reduce_nested_data (app, {privilege, key}) {
     if (nested) nested = nested.map(p => reduce_nested_data(app, {key: p}));
 
     return {
-        content: (privilege ? app.privilegeToKey(privilege) : '-root-'),
+        content: (privilege ? app.privilegeToKey(privilege) : '-listing-'),
         nested_rows: nested
     };
 }

@@ -127,6 +127,7 @@ body {
   > ._dropdown {
     position: relative;
     > ul {
+      z-index: 1;
       background-color: white;
       position: absolute;
       width: 100%;
@@ -164,24 +165,58 @@ body {
 }
 
 .nested-list {
+  $_color: black;
+
   width: 500px;
-  padding-top: px($border);
+  padding: px($border) 0 0 0;
+  list-style-type: none;
+  margin: 0 0 0 px($border);
+  z-index: 0;
 
-  .nested-list-row {
-    padding-top: px($border);
-    line-height: px(25);
-
-    .list-row-tab {
-      display: inline-block;
-      width: px(4 * $border);
+  .nested-list-content {
+    display: inline-block;
+    .icon {
+      margin-left: px($border);
     }
-
-    .list-row-content {
-      display: inline-block;
-      margin-left: px(2 * $border);
+    .content {
+      margin-left: px($border);
     }
+  }
 
+  position: relative;
+  &:before {
+    content: '';
+    position: absolute;
+    display: block;
+    width: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-left: 1px solid $_color;
+  }
 
+  > li {
+    padding-left: px(3*$border);
+    line-height: 1.5em;
+
+    position: relative;
+    &:before {
+      content: '';
+      position: absolute;
+      display: block;
+      width: px(3*$border);
+      height: 0;
+      margin-top: px(1);
+      top: 0.75em;
+      left: 0;
+      border-top: 1px solid $_color;
+    }
+    &:last-child:before {
+      background-color: $bg-color;
+      height: auto;
+      top: 0.75em;
+      bottom: 0;
+    }
   }
 
 }

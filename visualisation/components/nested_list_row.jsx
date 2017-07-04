@@ -8,41 +8,33 @@ export default class NestedListRow extends preact.Component {
         this.state = {
             unrolled: false
         };
+
+        this.toggleRollOut = this.toggleRollOut.bind(this);
     }
 
     render ({app, content, level, nested_rows}, {unrolled}) {
-        let tabs=[];
-
-        for (let i=0; i<level; i+=1) tabs.push(<span className="list-row-tab">&nbsp;</span>);
-        if (nested_rows) {
-            tabs.push(<button
-                className="button small list-row-tab"
-                type="button"
-                onClick={this.toggleRollOut.bind(this, !unrolled)}>
-                {unrolled ? '\u21B0' : '\u21B3'}
-            </button>);
-
-        }
-        else {
-            tabs.push(<span className="list-row-tab"> &#8594;</span>);
-
-        }
-
-        return <div className="nested-list-row">
-            {tabs}
-            <span className="list-row-content">{content}</span>
-            {unrolled && nested_rows && nested_rows.map(row =>
-                <NestedListRow
-                    app={app}
-                    content={row.content}
-                    nested_rows={row.nested_rows}
-                    level={level + 1}/>
-            )}
-        </div>;
+        return <li>
+            <div onClick={this.toggleRollOut} className="nested-list-content">
+                {nested_rows && <span className="icon">
+                    {unrolled ? '\u25B6' : '\u25BC'}
+                    </span>
+                }
+                <span className="content">{content}</span>
+            </div>
+            {unrolled && nested_rows && <ul className="nested-list">{
+                nested_rows.map(row =>
+                    <NestedListRow
+                        app={app}
+                        content={row.content}
+                        nested_rows={row.nested_rows}
+                        level={level + 1}/>
+                )
+            }</ul>}
+        </li>;
     }
 
-    toggleRollOut (new_value) {
-        this.setState({unrolled: new_value});
+    toggleRollOut () {
+        this.setState({unrolled: !this.state.unrolled});
     }
 
 }

@@ -74,6 +74,10 @@ export default class InputWithSelect extends preact.Component {
 
     onKeyDown (e) {
         if (this.list && this.list.onKeyDown(e)) return;
+        if (e.keyCode === 13 && this.props.enterable) {
+            this.onSelected(e.target.value.trim());
+            return;
+        }
         this.onTextChange(e);
     }
 
@@ -140,8 +144,10 @@ class DropdownList extends preact.Component {
 
             case 13: // enter
                 const selected = this.state.selected;
-                if (selected !== -1) this.props.toSelect(this.props.items[selected]);
-                return true;
+                if (selected !== -1) {
+                    this.props.toSelect(this.props.items[selected]);
+                    return true;
+                }
                 break;
 
             case 27: // escape
