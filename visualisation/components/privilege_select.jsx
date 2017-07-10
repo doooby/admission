@@ -46,8 +46,11 @@ export default class PrivilegeSelect extends preact.Component {
     }
 
     onNameSelected (name) {
-        let level = this.state.level;
-        if (level !== 'base') level = 'base';
+        const levels = this.props.app.admission.levels[name];
+        let level;
+        if (!levels) level = 'base';
+        else level = levels[levels.length - 1];
+
         this.setState({name, level});
         this.props.onChanged({name, level});
     }

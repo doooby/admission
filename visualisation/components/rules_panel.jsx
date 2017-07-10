@@ -31,7 +31,8 @@ export default class RulesPanel extends preact.Component {
                         defaultText={scope}
                         placeholder="scope"
                         enterable
-                        all_items={Object.keys(rules)}
+                        nullable
+                        all_items={Object.keys(app.admission.rules)}
                         onSelect={this.onScopeSelected}
                     />
 
@@ -39,6 +40,7 @@ export default class RulesPanel extends preact.Component {
                         defaultText={action}
                         placeholder="action"
                         enterable
+                        nullable
                         all_items={list_actions(rules)}
                         onSelect={this.onActionSelected}
                     />

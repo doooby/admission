@@ -85,7 +85,7 @@ export default class InputWithSelect extends preact.Component {
         const text = e.target.value.trim();
         let matching = null;
         if ((text && text !==this.state.text) || e.keyCode === 40) {
-            matching = filter_items(this.props.all_items, text);
+            matching = this.filtered_items(text);
         }
         this.setState({matching, text});
     }
@@ -95,7 +95,7 @@ export default class InputWithSelect extends preact.Component {
             this.closeList();
 
         } else {
-            this.setState({matching: this.props.all_items});
+            this.setState({matching: this.filtered_items()});
         }
     }
 
@@ -106,6 +106,14 @@ export default class InputWithSelect extends preact.Component {
     onSelected (value) {
         this.setState({text: value, matching: null});
         this.props.onSelect(value);
+    }
+
+    filtered_items (text) {
+        let items = this.props.all_items;
+        if (text) items = items.filter(value => value.startsWith(text));
+        if (this.props.nullable) items.unshift(null);
+
+        return items.length === 0 ? null : items;
     }
 
 }
@@ -124,7 +132,7 @@ class DropdownList extends preact.Component {
                 {items.map((name, i) => <li
                     className={classnames({'selected': selected === i})}
                     onClick={() => toSelect(name)}>
-                    {name}
+                    {name === null ? '\u00A0' : name}
                 </li>)}
             </ul>
         </div>;
@@ -166,10 +174,4 @@ class DropdownList extends preact.Component {
         if (selected >= this.props.items.length) selected = this.props.items.length -1;
         this.setState({selected});
     }
-}
-
-function filter_items (all, input_text) {
-    let items = all.filter(value => value.startsWith(input_text));
-    if (items.length === 0) items = null;
-    return items;
 }

@@ -141,16 +141,17 @@ body {
       z-index: 1;
       background-color: white;
       position: absolute;
-      width: 100%;
+      max-width: 300%;
       border: 1px solid $border-color;
-      border-top: none;
       list-style-type: none;
       margin: 0;
       padding: 0;
+      top: -1px;
       > li {
         @include no-select();
         padding: px($border);
         border: 1px solid transparent;
+        overflow: hidden;
         &.selected {
           background-color: $border-color2;
           color: white;

@@ -23,7 +23,7 @@ class Admission::Visualisation < Sinatra::Base
         **settings.admission_data)
   end
 
-  def self.admission_data_to_js order:, rules:, arbitrator:, **_
+  def self.admission_data_to_js order:, rules:, arbitrator: Admission::ResourceArbitration, **_
     js_data = {}
 
     top_levels = []
