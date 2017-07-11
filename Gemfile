@@ -6,5 +6,4 @@ gem 'rspec'
 gem 'byebug'
 
 gem 'sinatra', '~> 2.0'
-gem 'sinatra-contrib'
-gem 'haml'
+gem 'sinatra-contrib', '~> 2.0'

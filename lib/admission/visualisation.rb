@@ -1,30 +1,33 @@
 require 'sinatra/base'
 require 'sinatra/json'
-require 'haml'
 require 'pathname'
+require 'ostruct'
 
 class Admission::Visualisation < Sinatra::Base
   ASSETS_PATH = Pathname.new(__FILE__).join('..', '..', '..', 'visualisation')
 
   enable :inline_templates
 
+  set :url_prefix, nil
   set :js_entry, ASSETS_PATH.join('dist', 'admission_visualisation.js')
 
   get '/' do
-    haml :index
+    ViewHelper.new(url_prefix: settings.url_prefix).render_view
   end
 
   get '/admission_visualisation.js' do
     send_file settings.js_entry
   end
 
-  get '/admission_data' do
+  get '/admission_data.json' do
     json Admission::Visualisation.admission_data_to_js(
         **settings.admission_data)
   end
 
   def self.admission_data_to_js order:, rules:, arbitrator: Admission::ResourceArbitration, **_
     js_data = {}
+    order = order.call if Proc === order
+    rules = rules.call if Proc === rules
 
     top_levels = []
     privileges = order.values.inject Array.new do |arr, levels|
@@ -81,16 +84,24 @@ class Admission::Visualisation < Sinatra::Base
 
 end
 
-__END__
 
-@@ layout
-!!! 5
-%html
-  %head
-    %title= 'Admission'
-  %body.flex-column
-    = yield
+class ViewHelper < OpenStruct
 
-@@ index
-#admission-visualisation(data-url="/admission_data")
-%script(src="/admission_visualisation.js")
+  def render_view
+    <<-HEREDOC
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admission</title>
+</head>
+<body class='flex-column'>
+
+<div data-url='#{url_prefix}/admission_data.json' id='admission-visualisation'></div>
+<script src='#{url_prefix}/admission_visualisation.js'></script>
+
+</body>
+</html>
+    HEREDOC
+  end
+
+end
