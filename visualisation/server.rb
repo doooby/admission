@@ -5,22 +5,19 @@ require 'rubygems'
 ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
 require 'bundler/setup' if File.exists?(ENV['BUNDLE_GEMFILE'])
 
-require 'rack'
+require 'pathname'
 require 'byebug'
 
 require_relative '../lib/admission'
-require_relative '../lib/admission/visualisation'
+require_relative '../lib/admission/visualisation_app'
 require_relative '../spec/test_context/index'
 
-Admission::Visualisation.set :js_entry,
-    Admission::Visualisation::ASSETS_PATH.join('build', 'admission_visualisation.js')
-
-Admission::Visualisation.set :admission_data,
-    {
-        order: PRIVILEGES_ORDER,
-        rules: RESOURCE_RULES,
-        arbitrator: Admission::ResourceArbitration
+Rack::Handler::WEBrick.run Admission::VisualisationApp.new(
+    js_entry: Pathname.new(__FILE__).join('..', 'build', 'admission_visualisation.js'),
+    order: -> () {
+      {
+          privileges: PRIVILEGES_ORDER,
+          rules: RESOURCE_RULES
+      }
     }
-
-
-Rack::Handler::WEBrick.run Admission::Visualisation
+)
