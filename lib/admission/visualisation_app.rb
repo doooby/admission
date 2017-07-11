@@ -18,30 +18,26 @@ class Admission::VisualisationApp
       when %r~^/(\.html)?$~
         [
             200,
-            {'Content-Type' => 'text/html'},
+            {'Content-Type' => 'text/html; charset=utf-8'},
             [render_page]
         ]
 
       when %r~/app\.js~
         [
             200,
-            {'Content-Type' => 'application/js'},
+            {'Content-Type' => 'application/js; charset=utf-8'},
             [File.read(@settings[:js_entry])]
         ]
 
       when %r~/data\.json~
         [
             200,
-            {'Content-Type' => 'application/json'},
+            {'Content-Type' => 'application/json; charset=utf-8'},
             [render_data(@settings[:order].call)]
         ]
 
       else
-        [
-            404,
-            {'Content-Type' => 'text/html'},
-            ['Admission::VisualisationApp : page not found']
-        ]
+        default_404_response
 
     end
   end
@@ -120,6 +116,20 @@ class Admission::VisualisationApp
     js_data[:rules] = Hash[rules]
 
     JSON.generate js_data
+  end
+
+  def default_404_response
+    page = if @settings[:file_404]
+      File.read @settings[:file_404]
+    else
+      'Admission::VisualisationApp : page not found'
+    end
+
+    [
+        404,
+        {'Content-Type' => 'text/html; charset=utf-8'},
+        [page]
+    ]
   end
 
 end

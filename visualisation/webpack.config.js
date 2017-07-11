@@ -1,9 +1,14 @@
+var webpack = require('webpack');
 var path = require('path');
 var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 var production_build = process.env.BUILD === 'dist';
 
-var plugins = [];
+var plugins = [
+    new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(production_build ? 'production' : 'development')
+    })
+];
 if (production_build) {
     plugins.push(new UglifyJSPlugin({output: {ascii_only: true}}));
 }
