@@ -8,7 +8,7 @@ class Admission::VisualisationApp
     raise 'order must be a Proc' unless Proc === order
 
     settings[:js_entry] ||= Pathname.new(__FILE__).join('..', '..', '..',
-        'visualisation', 'dist', 'admission_visualisation.js')
+        'visualisation', 'dist', 'app.js')
 
     @settings = settings
   end

@@ -13,7 +13,7 @@ require 'rack'
 require 'byebug'
 
 Rack::Handler::WEBrick.run Admission::VisualisationApp.new(
-    js_entry: Pathname.new(__FILE__).join('..', 'build', 'admission_visualisation.js'),
+    js_entry: Pathname.new(__FILE__).join('..', 'build', 'app.js'),
     order: -> () {
       {
           privileges: PRIVILEGES_ORDER,

@@ -1,10 +1,18 @@
 var path = require('path');
+var UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+
+var production_build = process.env.BUILD === 'dist';
+
+var plugins = [];
+if (production_build) {
+    plugins.push(new UglifyJSPlugin({output: {ascii_only: true}}));
+}
 
 module.exports = {
     entry: './index.jsx',
     output: {
-        filename: 'admission_visualisation.js',
-        path: path.resolve(__dirname, 'build')
+        filename: 'app.js',
+        path: path.resolve(__dirname, (production_build ? 'dist' : 'build'))
     },
 
     module: {
@@ -28,5 +36,7 @@ module.exports = {
 
     resolve: {
         extensions: ['.js', '.jsx']
-    }
+    },
+
+    plugins: plugins
 };
