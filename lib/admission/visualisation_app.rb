@@ -1,4 +1,3 @@
-require 'rack'
 require 'pathname'
 require 'json'
 
@@ -8,15 +7,14 @@ class Admission::VisualisationApp
     order = settings[:order] || (raise 'order not defined, cannot visualise data')
     raise 'order must be a Proc' unless Proc === order
 
-    settings[:js_entry] ||= self.class.source_path.join('dist', 'admission_visualisation.js')
+    settings[:js_entry] ||= Pathname.new(__FILE__).join('..', '..', '..',
+        'visualisation', 'dist', 'admission_visualisation.js')
 
     @settings = settings
   end
 
   def call env
-    req = Rack::Request.new env
-
-    case req.path_info
+    case env['PATH_INFO'].to_s
       when %r~^/(\.html)?$~
         [
             200,
@@ -46,8 +44,6 @@ class Admission::VisualisationApp
         ]
 
     end
-
-
   end
 
   def render_page
@@ -124,10 +120,6 @@ class Admission::VisualisationApp
     js_data[:rules] = Hash[rules]
 
     JSON.generate js_data
-  end
-
-  def self.source_path
-    Pathname.new(__FILE__).join '..', '..', '..', 'visualisation'
   end
 
 end
