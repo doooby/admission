@@ -53,6 +53,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
     "#{resource}:#{scope}".to_sym
   end
 
+  def self.data_scope type
+    "#{type_to_scope type}:data".to_sym
+  end
+
   class RulesBuilder < Admission::Arbitration::RulesBuilder
 
     def allow scope, *actions, &block
@@ -90,6 +94,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
     def nested_scope resource, scope
       Admission::ResourceArbitration.nested_scope resource, scope
+    end
+
+    def data_scope *args
+      Admission::ResourceArbitration.data_scope *args
     end
 
     def create_index
