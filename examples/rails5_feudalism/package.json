@@ -1,5 +1,7 @@
 {
   "name": "rails5_feudalism",
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "jquery": "^3.2.1"
+  }
 }
