@@ -1,7 +1,7 @@
 class CreateUsers < ActiveRecord::Migration[5.1]
   def change
     create_table :users do |t|
-      t.string :name
+      t.references :person , null: false
       t.jsonb :privileges
       t.timestamps
     end

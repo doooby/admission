@@ -1,5 +1,5 @@
 <%
-  countries_list = UserStatus::COUNTRIES
+  countries_list = Person::COUNTRIES
   privileges_list = UserStatus.privileges_list.map &:text_key
   privileges_list.map!{|name| [UserStatus.privilege_key_to_text(name), name]}
 %>

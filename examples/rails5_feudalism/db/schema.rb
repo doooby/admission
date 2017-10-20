@@ -10,16 +10,40 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20171018085629) do
+ActiveRecord::Schema.define(version: 20171019082059) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  create_table "people", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "country", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "possessions", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "person_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_possessions_on_person_id"
+  end
+
+  create_table "traits", force: :cascade do |t|
+    t.string "name", null: false
+    t.bigint "person_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_traits_on_person_id"
+  end
+
   create_table "users", force: :cascade do |t|
-    t.string "name"
+    t.bigint "person_id", null: false
     t.jsonb "privileges"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_users_on_person_id"
   end
 
 end

@@ -1,0 +1,36 @@
+
+jozka_mr:
+  name: Jozka
+  country: Moravia
+
+klarka_mr:
+  name: Klarka
+  country: Moravia
+
+ze_sovince_mr:
+  name: Pan ze Sovince
+  country: Moravia
+
+pepik_bh:
+  name: Pepik
+  country: Bohemia
+
+marenka_bh:
+  name: Marenka
+  country: Bohemia
+
+zly_rodic_bh:
+  name: father of marenka & pepik
+  country: Bohemia
+
+z_lipe_bh:
+  name: Pan z Lipe
+  country: Bohemia
+
+z_lichnova_sl:
+  name: Pan z Lichnova
+  country: Silesia
+
+premysl_otakar_II:
+  name: knize Premysl Otakar II
+  country: Bohemia

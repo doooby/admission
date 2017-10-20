@@ -7,11 +7,11 @@ Show how to integrate Admission::ResourceArbitration into a rails app, that uses
 Admission is not meant to be only-rails privilege system. I'd like to include some helpers into the library though. This example then, is actually just a sandbox for me to find out the smoothest integration (controllers helpers, ActiveRecord to save privileges and more).
 
 ## to-do list
-* user privileges persistence
-* privileges system (popes, other christian patriarchs, emperors, kings, lords, ...)
-* controller use of `#request!` and `Admission::Denied` handling
-* god mode: status modification and transient admission plug-off
-* nested resources allowance
-* controllers helper for resources
-* view usage of `#can?`
-* model methods and attributes allowance (params permitting?)
+- [x] user privileges persistence
+- [x] privileges system (popes, other christian patriarchs, emperors, kings, lords, ...)
+- [ ] controller use of `#request!` and `Admission::Denied` handling
+- [ ] god mode: status modification and transient admission plug-off
+- [ ] nested resources allowance
+- [ ] controllers helper for resources
+- [ ] view usage of `#can?`
+- [ ] model methods and attributes allowance (params permitting?)
