@@ -32,10 +32,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
       when Symbol
         [scope_or_resource]
       when Array
-        resource, scope = scope_or_resource
-        [self.class.nested_scope(resource.class, scope), resource]
+        resource, nested_scope = scope_or_resource
+        [self.class.nested_scope(resource.class, nested_scope), resource]
       else
-        [self.class.type_to_scope(scope_or_resource.class).to_sym, scope_or_resource]
+        [self.class.type_to_scope(scope_or_resource.class), scope_or_resource]
     end
   end
 

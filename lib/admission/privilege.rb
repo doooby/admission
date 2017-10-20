@@ -62,6 +62,10 @@ class Admission::Privilege
     end
   end
 
+  def self.order_to_array index
+    index.values.map(&:values).flatten.uniq
+  end
+
   class OrderDefiner
 
     attr_reader :definitions
