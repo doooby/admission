@@ -1,0 +1,14 @@
+
+<h1>Forbidden.</h1>
+
+<%
+  back_link = if referer_url
+%>
+    <%= link_to 'back', referer_url %>
+<%
+  else
+    'back'
+  end
+%>
+
+return <%= back_link %> or go to <%= link_to 'homepage', root_path %>
