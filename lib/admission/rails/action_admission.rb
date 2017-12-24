@@ -51,7 +51,7 @@ module Admission
         end
 
         finder_name = "find_#{controller.controller_name.singularize}".to_sym
-        ScopeResolver.using finder_name
+        resolver = ScopeResolver.using finder_name
 
         set_resolver actions, resolver
       end
@@ -64,7 +64,7 @@ module Admission
         end
 
         finder_name = "#{controller.controller_name}_admission_scope".to_sym
-        ScopeResolver.using finder_name
+        resolver = ScopeResolver.using finder_name
 
         set_resolver actions, resolver
       end
