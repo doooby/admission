@@ -4,10 +4,12 @@ module Admission
       extend ActiveSupport::Concern
 
       included do
+
         action_admission.tap do |admission|
           admission.all_actions
           admission.attach_before_action
         end
+
       end
 
       class_methods do
@@ -18,11 +20,20 @@ module Admission
 
       end
 
+      private
+
       def request_admission! action, scope
+        if ::Admission::Rails.log_access
+          controller_action = "#{controller_name}##{action_name}"
+          ::Admission::Rails.logger.info(
+              "Admission::Rails requesting `#{action}` over `#{scope}` for #{controller_action}"
+          )
+        end
+
         current_user.status.request! action, scope
       end
 
-      def _assure_admission
+      def assure_admission
         action = action_name
         scope_resolver = self.class.action_admission.scope_for_action action
 

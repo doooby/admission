@@ -17,6 +17,11 @@ module Admission
 
           else
             # void
+            if ::Admission::Rails.log_access
+              action = "#{controller_instance.controller_name}##{controller_instance.action_name}"
+              ::Admission::Rails.logger.info "Admission::Rails skipped for #{action}"
+            end
+
         end
       end
 
@@ -33,7 +38,7 @@ module Admission
       def self.using scope_resolver
         return scope_resolver if scope_resolver.is_a? ScopeResolver
 
-        raise ArgumentError.new(
+        raise ::Admission::ConfigError.new(
             'Function to resolve the admission scope needed.'+
                 ' Pass a block or `resolve_to:` parameter.'
         ) unless scope_resolver.is_a?(Proc) || scope_resolver.is_a?(Symbol)

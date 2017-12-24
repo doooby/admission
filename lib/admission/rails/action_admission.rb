@@ -11,6 +11,8 @@ module Admission
         @resolvers = {}
       end
 
+      # config methods (adding resolvers)
+
       def all_actions resolve_to: nil, &block
         resolve_to = resolve_to || block
         resolver = if resolve_to
@@ -33,29 +35,53 @@ module Admission
         set_resolver actions, ScopeResolver.void
       end
 
-      def actions *list, resolve_to: nil, &block
-        list = list.flatten.compact.map(&:to_s)
+      def actions *actions, resolve_to: nil, &block
+        actions = actions.flatten.compact.map &:to_s
         resolve_to = resolve_to || block
         resolver = ScopeResolver.using resolve_to
 
-        set_resolver list, resolver
+        set_resolver actions, resolver
       end
 
-      def resolve_to_resource *list
-        list = list.flatten.compact.map(&:to_s)
+      def actions_to_resource *actions, all: false
+        actions = if all
+          ALL_ACTIONS
+        else
+          actions.flatten.compact.map &:to_s
+        end
+
         finder_name = "find_#{controller.controller_name.singularize}".to_sym
         ScopeResolver.using finder_name
 
-        set_resolver list, resolver
+        set_resolver actions, resolver
       end
 
-      def attach_before_action reorder: false
-        raise 'already attached' if @attached
+      def actions_to_nested_resource *actions, all: false
+        actions = if all
+          ALL_ACTIONS
+        else
+          actions.flatten.compact.map &:to_s
+        end
 
-        @controller.skip_before_action :_assure_admission if reorder
-        @controller.before_action :_assure_admission
+        finder_name = "#{controller.controller_name}_admission_scope".to_sym
+        ScopeResolver.using finder_name
+
+        set_resolver actions, resolver
+      end
+
+      def attach_before_action
+        if @attached
+          raise ::Admission::ConfigError.new(
+              "Controller callback to assure admission has already been attached for `#{@controller.name}`"
+          )
+        end
+
+        @controller.skip_before_action :assure_admission
+        @controller.before_action :assure_admission
         @attached = true
       end
+
+      # run-time
 
       def scope_for_action action
         resolvers[action] ||

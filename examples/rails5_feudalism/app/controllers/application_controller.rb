@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
 
   require 'admission/rails'
   include Admission::Rails::ControllerAddon
+  Admission::Rails.log_access = true
 
   def request_admission! action, scope
     @requested_admission = {action: action, scope: scope}
