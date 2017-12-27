@@ -4,7 +4,7 @@ module Admission
       extend ActiveSupport::Concern
 
       included do
-        action_admission.all_actions
+        action_admission.for_all
       end
 
       class_methods do

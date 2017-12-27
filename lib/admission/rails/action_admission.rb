@@ -13,24 +13,7 @@ module Admission
 
       # config methods (adding resolvers)
 
-      def all_actions resolve_to: nil, &block
-        resolve_to = resolve_to || block
-        resolver = if resolve_to
-          ScopeResolver.using resolve_to
-        else
-          ScopeResolver.default
-        end
-
-        set_resolver ALL_ACTIONS, resolver
-      end
-
-      def skip *actions
-        actions = actions.flatten.compact.map &:to_s
-
-        set_resolver actions, ScopeResolver.void
-      end
-
-      def actions *actions, resolve_to: nil, &block
+      def for *actions, resolve_to: nil, &block
         actions = actions.flatten.compact.map &:to_s
         resolve_to = resolve_to || block
         resolver = ScopeResolver.using resolve_to
@@ -38,7 +21,11 @@ module Admission
         set_resolver actions, resolver
       end
 
-      def actions_to_resource *actions, all: false, nested: false
+      def for_all resolve_to=nil, &block
+        self.for ALL_ACTIONS, resolve_to: (resolve_to || block || ScopeResolver.default)
+      end
+
+      def for_resource *actions, all: false, nested: false
         actions = if all
           ALL_ACTIONS
         else
@@ -55,35 +42,41 @@ module Admission
         set_resolver actions, resolver
       end
 
-      # attaching / detaching controller's before action
+      def skip *actions
+        actions = actions.flatten.compact.map &:to_s
 
-      def attach_before_action
-        if already_attached?
-          raise ::Admission::ConfigError.new(
-              "Controller callback to assure admission has already been attached for `#{@controller.name}` or parent."
-          )
-        end
-
-        @controller.before_action :assure_admission
-        @attached = true
+        set_resolver actions, ScopeResolver.void
       end
 
-      def reorder_before_action
-        if attached
-          raise ::Admission::ConfigError.new(
-              "Controller callback to assure admission has already been re-attached for `#{@controller.name}`"
-          )
-        end
-
-        @controller.skip_before_action :assure_admission
-        @controller.before_action :assure_admission
-        @attached = true
-      end
-
-      def skip_before_action
-        @controller.skip_before_action :assure_admission
-        @attached = false
-      end
+      # # attaching / detaching controller's before action
+      #
+      # def attach_before_action
+      #   if already_attached?
+      #     raise ::Admission::ConfigError.new(
+      #         "Controller callback to assure admission has already been attached for `#{@controller.name}` or parent."
+      #     )
+      #   end
+      #
+      #   @controller.before_action :assure_admission
+      #   @attached = true
+      # end
+      #
+      # def reorder_before_action
+      #   if attached
+      #     raise ::Admission::ConfigError.new(
+      #         "Controller callback to assure admission has already been re-attached for `#{@controller.name}`"
+      #     )
+      #   end
+      #
+      #   @controller.skip_before_action :assure_admission
+      #   @controller.before_action :assure_admission
+      #   @attached = true
+      # end
+      #
+      # def skip_before_action
+      #   @controller.skip_before_action :assure_admission
+      #   @attached = false
+      # end
 
       # run-time
 
@@ -93,11 +86,11 @@ module Admission
             parent&.scope_for_action(action)
       end
 
-      protected
-
-      def already_attached?
-        attached || parent&.already_attached?
-      end
+      # protected
+      #
+      # def already_attached?
+      #   attached || parent&.already_attached?
+      # end
 
       private
 
