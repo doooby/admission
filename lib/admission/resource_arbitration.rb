@@ -2,8 +2,8 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
   def initialize person, rules_index, request, scope_or_resource
     @person = person
-    scope, @resource = scope_and_resource scope_or_resource
-    @rules_index = rules_index[scope] || {}
+    @scope, @resource = scope_and_resource scope_or_resource
+    @rules_index = rules_index[@scope] || {}
     @request = request.to_sym
     @decisions = {}
   end
@@ -39,6 +39,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
     end
   end
 
+  def case_to_s
+    "#{@scope}->#{@request}#{Admission::ResourceArbitration.resource_to_s @resource if @resource}"
+  end
+
   def self.type_to_scope_resolution proc=nil, &block
     @type_to_scope = proc || block
   end
@@ -55,6 +59,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
   def self.data_scope type
     "#{type_to_scope type}:data".to_sym
+  end
+
+  def self.resource_to_s resource
+    ", resource: #{resource.respond_to?(:id) ? "#{resource.class.name}[#{resource.id}]" : resource}"
   end
 
   class RulesBuilder < Admission::Arbitration::RulesBuilder

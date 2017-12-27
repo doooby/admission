@@ -1,6 +1,7 @@
 class Admission::Status
 
   attr_reader :person, :privileges, :rules
+  attr_accessor :debug
 
   def initialize person, privileges, rules, arbiter
     @person = person
@@ -64,6 +65,7 @@ class Admission::Status
   private
 
   def process_request arbitration
+    ::Admission.debug_arbitration.call arbitration if ::Admission.debug_arbitration
     privileges.any? do |privilege|
       arbitration.prepare_sitting privilege.context
       arbitration.rule_per_privilege(privilege).eql? true

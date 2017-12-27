@@ -18,10 +18,6 @@ module Admission
       private
 
       def request_admission! action, scope
-        if ::Admission::Rails.log_access
-          ::Admission::Rails.logger.info "Admission::Rails requesting `#{action}` over `#{scope}`"
-        end
-
         current_user.status.request! action, scope
       end
 

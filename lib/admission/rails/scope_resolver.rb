@@ -15,12 +15,7 @@ module Admission
           when Proc
             yield controller_instance.instance_exec(&@scope)
 
-          else
-            # void
-            if ::Admission::Rails.log_access
-              action = "#{controller_instance.controller_name}##{controller_instance.action_name}"
-              ::Admission::Rails.logger.info "Admission::Rails skipped for #{action}"
-            end
+          else # void
 
         end
       end

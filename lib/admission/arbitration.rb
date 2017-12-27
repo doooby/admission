@@ -60,6 +60,10 @@ class Admission::Arbitration
     make_decision @rules_index[Admission::ALL_ACTION], privilege
   end
 
+  def case_to_s
+    @request.to_s
+  end
+
   def self.define_rules privilege_order, &block
     builder = self::RulesBuilder.new privilege_order
     builder.instance_exec &block
