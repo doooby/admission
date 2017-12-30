@@ -4,7 +4,7 @@ module Admission
 
       ALL_ACTIONS = '^'.freeze
 
-      attr_reader :controller, :resolvers, :attached
+      attr_reader :controller, :resolvers#, :attached
 
       def initialize controller
         @controller = controller
@@ -14,7 +14,6 @@ module Admission
       # config methods (adding resolvers)
 
       def for *actions, resolve_to: nil, &block
-        actions = actions.flatten.compact.map &:to_s
         resolve_to = resolve_to || block
         resolver = ScopeResolver.using resolve_to
 
@@ -26,12 +25,6 @@ module Admission
       end
 
       def for_resource *actions, all: false, nested: false
-        actions = if all
-          ALL_ACTIONS
-        else
-          actions.flatten.compact.map &:to_s
-        end
-
         finder_name = if nested
           "#{controller.controller_name}_admission_scope"
         else
@@ -39,12 +32,11 @@ module Admission
         end
         resolver = ScopeResolver.using finder_name.to_sym
 
+        actions = all ? ALL_ACTIONS : actions
         set_resolver actions, resolver
       end
 
       def skip *actions
-        actions = actions.flatten.compact.map &:to_s
-
         set_resolver actions, ScopeResolver.void
       end
 
@@ -103,12 +95,12 @@ module Admission
 
       def set_resolver actions, resolver
         if actions.is_a? Array
-          actions.each do |action|
+          actions.flatten.compact.map(&:to_s).each do |action|
             resolvers[action] = resolver
           end
 
         else
-          resolvers[actions] = resolver
+          resolvers[actions.to_s] = resolver
 
         end
       end

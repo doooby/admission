@@ -33,10 +33,10 @@ module Admission
       def self.using scope_resolver
         return scope_resolver if scope_resolver.is_a? ScopeResolver
 
-        raise ::Admission::ConfigError.new(
-            'Function to resolve the admission scope needed.'+
-                ' Pass a block or `resolve_to:` parameter.'
-        ) unless scope_resolver.is_a?(Proc) || scope_resolver.is_a?(Symbol)
+        unless scope_resolver.is_a?(Proc) || scope_resolver.is_a?(Symbol)
+          raise 'Function to resolve the admission scope needed.'+
+              ' Pass a block or `resolve_to:` parameter.'
+        end
 
         new scope_resolver
       end

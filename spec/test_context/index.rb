@@ -1,5 +1,3 @@
-require_relative '../../lib/admission'
-
 require_relative 'country'
 require_relative 'person'
 

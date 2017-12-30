@@ -1,4 +1,4 @@
-require_relative '_helper'
+require_relative '../spec_helper'
 
 RSpec.describe 'resources_arbitrating' do
 

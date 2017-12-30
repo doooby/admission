@@ -1,4 +1,7 @@
 require_relative '../lib/admission'
+require_relative '../lib/admission/rails'
+require_relative './test_context/index'
+
 require_relative 'rspec_config'
 
 require 'byebug'

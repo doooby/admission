@@ -1,13 +1,13 @@
 module Admission
   module Rails
     module ControllerAddon
-      extend ActiveSupport::Concern
 
-      included do
-        action_admission.for_all
+      def self.included mod
+        mod.extend ClassMethods
+        mod.action_admission.for_all
       end
 
-      class_methods do
+      module ClassMethods
 
         def action_admission
           @action_admission ||= ActionAdmission.new(self)
