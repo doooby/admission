@@ -1,7 +1,3 @@
-require_relative '../lib/admission'
-require_relative '../lib/admission/rails'
-require_relative './test_context/index'
-
 require_relative 'rspec_config'
 
 require 'byebug'
@@ -21,3 +17,12 @@ RSpec::Matchers.define :have_inst_vars do |expected|
     end
   end
 end
+
+require 'simplecov'
+SimpleCov.start do
+  add_filter %r~^(?!/lib/)~
+end
+
+require_relative '../lib/admission'
+require_relative '../lib/admission/rails'
+require_relative './test_context/index'
