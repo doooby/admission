@@ -14,3 +14,7 @@ The other thing that always bugged me about cancan (and was proven problematic i
 * used in production for a rails app
 * tests are only "ok"
 * documentation non-existent
+
+### to-do list
+* reuse arbitration instance
+* Admission::Denied must be able to tell the requested action and scope
