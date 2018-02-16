@@ -16,6 +16,9 @@ The other thing that always bugged me about cancan (and was proven problematic i
 * documentation non-existent
 
 ### to-do list
-* reuse arbitration instance
-* Admission::Denied must be able to tell the requested action and scope
-* test guides & helpers
+- [ ] reuse arbitration instance
+- [x] Admission::Denied must be able to tell the requested action and scope
+- [x] minitest helpers
+- [ ] rspec helpers
+- [ ] test guides
+- [ ] rails example

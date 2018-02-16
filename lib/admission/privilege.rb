@@ -52,7 +52,7 @@ class Admission::Privilege
     [
         "privilege #{text_key}",
         (context && ", context #{context}")
-    ].join ' '
+    ].join ''
   end
 
   def self.define_order &block

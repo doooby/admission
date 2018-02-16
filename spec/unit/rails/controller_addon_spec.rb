@@ -18,6 +18,7 @@ RSpec.describe Admission::Rails::ControllerAddon do
   let(:controller){
     controller = Class.new do
       def action_name; 'home'; end
+      def self.before_action *_; end
     end
     controller.include ADDON
   }

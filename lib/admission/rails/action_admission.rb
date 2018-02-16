@@ -4,7 +4,7 @@ module Admission
 
       ALL_ACTIONS = '^'.freeze
 
-      attr_reader :controller, :resolvers#, :attached
+      attr_reader :controller, :resolvers
 
       def initialize controller
         @controller = controller
@@ -40,49 +40,12 @@ module Admission
         set_resolver actions, ScopeResolver.void
       end
 
-      # # attaching / detaching controller's before action
-      #
-      # def attach_before_action
-      #   if already_attached?
-      #     raise ::Admission::ConfigError.new(
-      #         "Controller callback to assure admission has already been attached for `#{@controller.name}` or parent."
-      #     )
-      #   end
-      #
-      #   @controller.before_action :assure_admission
-      #   @attached = true
-      # end
-      #
-      # def reorder_before_action
-      #   if attached
-      #     raise ::Admission::ConfigError.new(
-      #         "Controller callback to assure admission has already been re-attached for `#{@controller.name}`"
-      #     )
-      #   end
-      #
-      #   @controller.skip_before_action :assure_admission
-      #   @controller.before_action :assure_admission
-      #   @attached = true
-      # end
-      #
-      # def skip_before_action
-      #   @controller.skip_before_action :assure_admission
-      #   @attached = false
-      # end
-
       # run-time
-
       def scope_for_action action
         resolvers[action] ||
             resolvers[ALL_ACTIONS] ||
             parent&.scope_for_action(action)
       end
-
-      # protected
-      #
-      # def already_attached?
-      #   attached || parent&.already_attached?
-      # end
 
       private
 

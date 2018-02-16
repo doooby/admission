@@ -2,9 +2,10 @@ module Admission
   module Rails
     module ControllerAddon
 
-      def self.included mod
-        mod.extend ClassMethods
-        mod.action_admission.for_all
+      def self.included controller
+        controller.extend ClassMethods
+        controller.before_action :assure_admission
+        controller.action_admission.for_all
       end
 
       module ClassMethods
