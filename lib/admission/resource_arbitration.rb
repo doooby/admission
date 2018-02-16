@@ -59,10 +59,6 @@ class Admission::ResourceArbitration < Admission::Arbitration
     "#{resource}:#{scope}".to_sym
   end
 
-  def self.data_scope type
-    "#{type_to_scope type}:data".to_sym
-  end
-
   def self.resource_to_s resource
     ", resource: #{resource.respond_to?(:id) ? "#{resource.class.name}[#{resource.id}]" : resource}"
   end
@@ -104,10 +100,6 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
     def nested_scope resource, scope
       Admission::ResourceArbitration.nested_scope resource, scope
-    end
-
-    def data_scope *args
-      Admission::ResourceArbitration.data_scope *args
     end
 
     def create_index
