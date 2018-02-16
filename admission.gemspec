@@ -12,7 +12,9 @@ Gem::Specification.new do |spec|
   spec.description = 'update-me'
   spec.email = 'zelazk.o@email.cz'
 
+  ignore_files_regex = %r~^examples~
   library_files = (`git ls-files -z`).split "\x0"
+  library_files.reject!{|f| ignore_files_regex === f}
   spec.files = library_files
 
 end
