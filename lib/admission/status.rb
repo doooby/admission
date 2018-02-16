@@ -24,7 +24,7 @@ class Admission::Status
 
   def can? *args
     return false unless privileges
-    process_request @arbiter.new(person, rules, *args)
+    process_request instantiate_arbitration(*args)
   end
 
   def cannot? *args
@@ -46,9 +46,13 @@ class Admission::Status
     list.any?{|p| p.eql_or_inherits? sought}
   end
 
+  def instantiate_arbitration *args
+    @arbiter.new person, rules, *args
+  end
+
   def allowed_in_contexts *args
     return [] unless privileges
-    arbitration = @arbiter.new person, rules, *args
+    arbitration = instantiate_arbitration *args
 
     privileges.reduce [] do |list, privilege|
       context = privilege.context
@@ -66,6 +70,7 @@ class Admission::Status
 
   def process_request arbitration
     ::Admission.debug_arbitration.call arbitration if ::Admission.debug_arbitration
+
     privileges.any? do |privilege|
       arbitration.prepare_sitting privilege.context
       arbitration.rule_per_privilege(privilege).eql? true

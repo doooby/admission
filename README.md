@@ -18,3 +18,4 @@ The other thing that always bugged me about cancan (and was proven problematic i
 ### to-do list
 * reuse arbitration instance
 * Admission::Denied must be able to tell the requested action and scope
+* test guides & helpers

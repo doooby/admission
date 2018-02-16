@@ -40,14 +40,20 @@ class Admission::Privilege
     level == BASE_LEVEL_NAME ? name.to_s : "#{name}-#{level}"
   end
 
-  def to_s
-    "<#{[
+  def inspect
+    "#<#{[
         'Privilege',
         "key=#{text_key}",
         (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]")
     ].compact.join ' '}>"
   end
-  alias :inspect :to_s
+
+  def to_s
+    [
+        "privilege #{text_key}",
+        (context && ", context #{context}")
+    ].join ' '
+  end
 
   def self.define_order &block
     Admission::Privilege::OrderDefiner.define &block

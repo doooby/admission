@@ -1,5 +1,6 @@
 class Admission::Arbitration
 
+  attr_reader :person, :request
 
   def initialize person, rules_index, request
     @person = person

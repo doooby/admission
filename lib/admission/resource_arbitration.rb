@@ -1,5 +1,7 @@
 class Admission::ResourceArbitration < Admission::Arbitration
 
+  attr_reader :scope, :resource
+
   def initialize person, rules_index, request, scope_or_resource
     @person = person
     @scope, @resource = scope_and_resource scope_or_resource
@@ -40,7 +42,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
   end
 
   def case_to_s
-    "#{@scope}->#{@request}#{Admission::ResourceArbitration.resource_to_s @resource if @resource}"
+    "`#{@request}` over `#{@scope}`#{Admission::ResourceArbitration.resource_to_s @resource if @resource}"
   end
 
   def self.type_to_scope_resolution proc=nil, &block

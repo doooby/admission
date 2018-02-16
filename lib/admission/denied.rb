@@ -1,14 +1,14 @@
 class Admission::Denied < ::StandardError
 
-  attr_reader :status, :request_args
+  attr_reader :status, :arbitration
 
   def initialize status, *request_args
     @status = status
-    @request_args = request_args
+    @arbitration = status.instantiate_arbitration *request_args
   end
 
   def message
-    'Admission denied.'
+    "Admission denied to #{arbitration.case_to_s}."
   end
 
 end
