@@ -12,6 +12,8 @@ class Admission::Status
       nil
 
     else
+      # sort privileges
+      # convenient as for arbitration doesn't have to switch between contexts too often
       grouped = privileges.inject Hash.new do |h, p|
         hash = p.context.hash rescue nil.hash
         (h[hash] ||= []) << p

@@ -45,13 +45,8 @@ class Admission::ResourceArbitration < Admission::Arbitration
     "`#{@request}` over `#{@scope}`#{Admission::ResourceArbitration.resource_to_s @resource if @resource}"
   end
 
-  def self.type_to_scope_resolution proc=nil, &block
-    @type_to_scope = proc || block
-  end
-
   def self.type_to_scope type
-    scope = @type_to_scope && @type_to_scope.call(type)
-    scope ? scope.to_sym : :"#{type.name.downcase}s"
+    :"#{type.name.downcase}s"
   end
 
   def self.nested_scope resource, scope
