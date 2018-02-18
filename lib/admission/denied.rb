@@ -11,4 +11,6 @@ class Admission::Denied < ::StandardError
     "Admission denied to #{arbitration.case_to_s}."
   end
 
+  alias to_s message
+
 end
