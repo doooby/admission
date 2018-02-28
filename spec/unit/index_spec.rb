@@ -11,22 +11,22 @@ RSpec.describe Admission::Index do
     index
   end
 
-  describe '#to_a' do
+  describe '#to_list' do
 
     it 'empty' do
-      expect(instance_with.to_a).to eq([])
+      expect(instance_with.to_list).to eq([])
     end
 
     it 'non-nested' do
       index = instance_with [:item1, :item2]
-      expect(index.to_a).to eq(
+      expect(index.to_list).to eq(
           [:item1, :item2]
       )
     end
 
     it 'nested one level' do
       index = instance_with [:item1, :item2], {nested: instance_with([:n1])}
-      expect(index.to_a).to eq(
+      expect(index.to_list).to eq(
           [:item1, :item2, {nested: [:n1]}]
       )
     end
@@ -37,7 +37,7 @@ RSpec.describe Admission::Index do
               nested1a: instance_with([:n1a]),
               nested1b: instance_with([:n1b, {nested2a: instance_with([:n2a, :n2b])}])
           }
-      expect(index.to_a).to eq(
+      expect(index.to_list).to eq(
           [:item1, :item2, {nested1a: [:n1a], nested1b: [:n1b, {nested2a: [:n2a, :n2b]}]}]
       )
     end
@@ -48,9 +48,9 @@ RSpec.describe Admission::Index do
 
     it 'compares two instances' do
       instance1 = instance_with
-      expect(instance1).not_to receive(:to_a)
+      expect(instance1).not_to receive(:to_list)
       instance2 = instance_with
-      expect(instance2).not_to receive(:to_a)
+      expect(instance2).not_to receive(:to_list)
 
       expect(instance1 == instance2).not_to be_truthy
       expect(instance2 == instance1).not_to be_truthy
@@ -60,7 +60,7 @@ RSpec.describe Admission::Index do
 
     it 'compares with an array using conversion' do
       instance1 = instance_with [:item1]
-      expect(instance1).to receive(:to_a).and_call_original
+      expect(instance1).to receive(:to_list).and_call_original
       expect(instance1 == [:item1]).to be_truthy
     end
 
@@ -116,27 +116,27 @@ RSpec.describe Admission::Index do
 
   end
 
-  describe '#allowed?' do
+  describe '#include?' do
 
     it 'looks for an item' do
       index = instance_with [:item1]
-      expect(index.allowed? :item1).to eq(true)
-      expect(index.allowed? :item2).to eq(false)
+      expect(index.include? :item1).to eq(true)
+      expect(index.include? :item2).to eq(false)
     end
 
     it 'looks for a nested item' do
       index = instance_with [], {nested: instance_with([:item2])}
-      expect(index.allowed? :item1).to eq(false)
-      expect(index.allowed? :item2).to eq(false)
-      expect(index.allowed? :nested, :item1).to eq(false)
-      expect(index.allowed? :nested, :item2).to eq(true)
-      expect(index.allowed? :non_nested, :item1).to eq(false)
+      expect(index.include? :item1).to eq(false)
+      expect(index.include? :item2).to eq(false)
+      expect(index.include? :nested, :item1).to eq(false)
+      expect(index.include? :nested, :item2).to eq(true)
+      expect(index.include? :non_nested, :item1).to eq(false)
     end
 
     it 'converts arguments' do
       index = instance_with [:item1], {nested: instance_with([:item2])}
-      expect(index.allowed? 'item1').to eq(true)
-      expect(index.allowed? 'nested', 'item2').to eq(true)
+      expect(index.include? 'item1').to eq(true)
+      expect(index.include? 'nested', 'item2').to eq(true)
     end
 
   end

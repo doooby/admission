@@ -19,7 +19,7 @@ class Admission::Index
     self
   end
 
-  def allowed? *path
+  def include? *path
     item, *path = path
     item = item.to_sym
 
@@ -28,26 +28,26 @@ class Admission::Index
 
     else
       child = children[item]
-      child ? child.allowed?(*path) : false
+      child ? child.include?(*path) : false
     end
   end
 
   def == other
     case other
       when Array
-        to_a.eql? other
+        to_list.eql? other
       else
         super
     end
   end
   alias :eql? :==
 
-  def to_a
+  def to_list
     result_list = items.dup
 
     unless children.empty?
       result_children = children.inject Hash.new do |h, (key, index)|
-        h[key] = index.to_a
+        h[key] = index.to_list
         h
       end
       result_list.push result_children
