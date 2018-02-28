@@ -72,45 +72,45 @@ RSpec.describe Admission::Index do
 
   end
 
-  describe '#allow' do
+  describe '#add' do
 
     it 'single' do
-      index.allow :single
+      index.add :single
       expect(index).to eq([:single])
     end
 
     it 'passed as args' do
-      index.allow :single, :double
+      index.add :single, :double
       expect(index).to eq([:single, :double])
     end
 
     it 'passed as arrays' do
-      index.allow :single, [:a1, :a2], :double, [:b1, :b2]
+      index.add :single, [:a1, :a2], :double, [:b1, :b2]
       expect(index).to eq([:single, :a1, :a2, :double, :b1, :b2])
     end
 
     it 'convert args to symbols' do
-      index.allow 'single', ['a1', 'a2'], 'double', ['b1', 'b2']
+      index.add 'single', ['a1', 'a2'], 'double', ['b1', 'b2']
       expect(index).to eq([:single, :a1, :a2, :double, :b1, :b2])
     end
 
     it 'passed as keyword args, nested item' do
-      index.allow :single, nested: :a1
+      index.add :single, nested: :a1
       expect(index).to eq([:single, {nested: [:a1]}])
     end
 
     it 'passed as last position hash' do
-      index.allow :single, {nested: :a1}
+      index.add :single, {nested: :a1}
       expect(index).to eq([:single, {nested: [:a1]}])
     end
 
     it 'passed as keyword args, nested item list' do
-      index.allow :single, nested: [:a1]
+      index.add :single, nested: [:a1]
       expect(index).to eq([:single, {nested: [:a1]}])
     end
 
     it 'passed as keyword args, deep nested' do
-      index.allow :single, nested: [:a1, {deep_nested: :b1}]
+      index.add :single, nested: [:a1, {deep_nested: :b1}]
       expect(index).to eq([:single, {nested: [:a1, {deep_nested: [:b1]}]}])
     end
 

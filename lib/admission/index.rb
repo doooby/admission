@@ -7,12 +7,12 @@ class Admission::Index
     @children = {}
   end
 
-  def allow *add_items, **add_children
+  def add *add_items, **add_children
     @items |= add_items.flatten.map(&:to_sym)
 
     add_children.each do |key, list|
       child = Admission::Index.new
-      child.allow *list
+      child.add *list
       children[key] = child
     end
 
