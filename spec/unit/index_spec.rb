@@ -114,6 +114,12 @@ RSpec.describe Admission::Index do
       expect(index).to eq([:single, {nested: [:a1, {deep_nested: [:b1]}]}])
     end
 
+    it 'sequential add' do
+      index.add :single, nested: [:a1, :a2]
+      index.add :double_kill, nested: [:a3]
+      expect(index).to eq([:single, :double_kill, {nested: %i[a1 a2 a3]}])
+    end
+
   end
 
   describe '#include?' do

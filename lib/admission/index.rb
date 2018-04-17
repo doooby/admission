@@ -11,7 +11,7 @@ class Admission::Index
     @items |= add_items.flatten.map(&:to_sym)
 
     add_children.each do |key, list|
-      child = Admission::Index.new
+      child = @children[key] || Admission::Index.new
       child.add *list
       children[key] = child
     end
