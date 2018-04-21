@@ -262,7 +262,7 @@ current_user.status.request! :show, [@owner, :cars]
 
 ### to-do list
 - [x] basic readme guide
-- [ ] thorough readme
+- [ ] docs
 - [ ] reuse arbitration instance (maybe unnecessary, deduce from benchmarks)
 - [x] Admission::Denied must be able to tell the requested action and scope
 - [x] minitest helpers
