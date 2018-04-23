@@ -23,12 +23,6 @@ RSpec.describe Admission::Rails::ControllerAddon do
     controller.include ADDON
   }
 
-  it 'sets default configuration on inclusion' do
-    stub_action_admission
-    controller
-    expect(controller.action_admission).to have_received(:for_all).with(no_args)
-  end
-
   it 'caches action_admission instance' do
     klass, _ = stub_action_admission
     controller.action_admission
@@ -44,14 +38,6 @@ RSpec.describe Admission::Rails::ControllerAddon do
     stub_action_admission
     expect(controller.private_method_defined? :request_admission!).to be_truthy
     expect(controller.private_method_defined? :assure_admission).to be_truthy
-  end
-
-  it '#assure_admission raises no scope error' do
-    _, instance = stub_action_admission
-    allow(instance).to receive(:scope_for_action)
-    expect{
-      controller.new.send :assure_admission
-    }.to raise_error(Admission::Rails::ScopeNotDefined)
   end
 
   it '#assure_admission request admission with particular scope' do

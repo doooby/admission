@@ -90,17 +90,9 @@ RSpec.describe Admission::Rails::ActionAdmission do
       instance.for_all &resolver
     end
 
-    it 'passes no resolver -> default' do
-      expect(instance).to receive(:for).with(
-          Admission::Rails::ActionAdmission::ALL_ACTIONS,
-          hash_including(resolve_to: Admission::Rails::ScopeResolver.default)
-      )
-      instance.for_all
-    end
-
   end
 
-  describe '#for_resource' do
+  describe '#resource_for' do
 
     class RailsString < String
       attr_reader :singularize
@@ -118,28 +110,28 @@ RSpec.describe Admission::Rails::ActionAdmission do
     }
 
     it 'uses resource finder as the resolver' do
-      instance.for_resource :aaa
+      instance.resource_for :aaa
       resolver = instance.resolvers['aaa']
       expect(resolver.instance_variable_get '@scope').to eq(:find_user)
       expect(instance.resolvers.keys.length).to eq(1)
     end
 
     it 'uses scope helper as the resolver' do
-      instance.for_resource :aaa, nested: true
+      instance.resource_for :aaa, nested: true
       resolver = instance.resolvers['aaa']
       expect(resolver.instance_variable_get '@scope').to eq(:users_admission_scope)
       expect(instance.resolvers.keys.length).to eq(1)
     end
 
     it 'sets the finder for all actions' do
-      instance.for_resource all: true
+      instance.resource_for all: true
       resolver = instance.resolvers[Admission::Rails::ActionAdmission::ALL_ACTIONS]
       expect(resolver.instance_variable_get '@scope').to eq(:find_user)
       expect(instance.resolvers.keys.length).to eq(1)
     end
 
     it 'accepts list of actions' do
-      instance.for_resource :a1, :b2
+      instance.resource_for :a1, :b2
       expect(instance.resolvers.keys).to eq(%w[a1 b2])
     end
 
@@ -171,16 +163,8 @@ RSpec.describe Admission::Rails::ActionAdmission do
       expect(instance.scope_for_action 'a1').to eq(:find_user)
     end
 
-    it 'takes scope from parent object' do
-      class RootController
-        def self.action_admission
-          @action_admission ||= Admission::Rails::ActionAdmission.new(self)
-        end
-      end
-      ChildController = Class.new RootController
-
-      RootController.action_admission.resolvers['a1'] = :find_user
-      expect(ChildController.action_admission.scope_for_action 'a1').to eq(:find_user)
+    it 'default resolver' do
+      expect(instance.scope_for_action 'a1').to eq(Admission::Rails::ScopeResolver.default)
     end
 
   end

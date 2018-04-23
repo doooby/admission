@@ -1,3 +1,9 @@
+class String
+  def tableize
+    "#{self.downcase}s"
+  end
+end
+
 require_relative 'country'
 require_relative 'person'
 

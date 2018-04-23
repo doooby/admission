@@ -34,7 +34,7 @@ module Admission
       #   action_admission.for_all{ 'the_scope' }
       #
       def for_all resolve_to=nil, &block
-        self.for ALL_ACTIONS, resolve_to: (resolve_to || block || ScopeResolver.default)
+        self.for ALL_ACTIONS, resolve_to: (resolve_to || block)
       end
 
       # Sets `action_admission` to be resolved to default scope for particular actions.
@@ -105,17 +105,10 @@ module Admission
       def scope_for_action action
         resolvers[action] ||
             resolvers[ALL_ACTIONS] ||
-            parent&.scope_for_action(action)
+            ScopeResolver.default
       end
 
       private
-
-      def parent
-        klass = @controller.superclass
-        if klass.respond_to? :action_admission
-          klass.action_admission
-        end
-      end
 
       def set_resolver actions, resolver
         if actions.is_a? Array

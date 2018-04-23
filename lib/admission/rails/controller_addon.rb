@@ -5,7 +5,6 @@ module Admission
       def self.included controller
         controller.extend ClassMethods
         controller.before_action :assure_admission
-        controller.action_admission.for_all
       end
 
       module ClassMethods
@@ -16,12 +15,6 @@ module Admission
         # to set it explicitly.
         #
         # For all options see `Admission::Rails::ActionAdmission`
-        #
-        # `action_admission` is inherently passed to child controllers,
-        # so be aware that setting some scope for an action in a parent controller
-        # will result to the action being resolved to the same scope in child controller.
-        # On the other hand setting defaults in ApplicationController will set you up
-        # to ensure that every child controller is under admission control.
         def action_admission
           @action_admission ||= ActionAdmission.new(self)
         end
@@ -43,10 +36,6 @@ module Admission
       def assure_admission
         action = action_name
         scope_resolver = self.class.action_admission.scope_for_action action
-
-        unless scope_resolver
-          raise ScopeNotDefined.new(self)
-        end
 
         scope_resolver.apply self do |scope|
           request_admission! action.to_sym, scope

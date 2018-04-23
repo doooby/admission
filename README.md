@@ -213,7 +213,7 @@ privilege :human do
 end
  
 class PeopleController < ApplicationController
-  action_admission.for_resource :show, :update
+  action_admission.resource_for :show, :update
   
   def find_person
     @person = Person.find params[:id]
@@ -238,7 +238,7 @@ class CarsController < ApplicationController
   skip_before_action :assure_admission
   before_action :find_car, except: %i[index]
   before_action :assure_admission
-  action_admission.for_resource all: true, nested: true
+  action_admission.resource_for all: true, nested: true
   
   # finds car ant it's owner
   def find_car
