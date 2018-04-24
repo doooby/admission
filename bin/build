@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
 
-cd visualisation
-yarn run build
-
-cd ..
-git add -f visualisation/dist/app.js
-
 rm *.gem
 gem build admission.gemspec

@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = 'Admission rules to actions or resources, privileges system included'
   spec.email = 'zelazk.o@email.cz'
 
-  spec.files = (`git ls-files -z lib visualisation/dist/app.js admission.gemspec`).split "\x0"
+  spec.files = (`git ls-files -z lib admission.gemspec`).split "\x0"
   spec.require_paths = ['lib']
 
   spec.required_ruby_version = '>= 2.3.0'
