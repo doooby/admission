@@ -60,20 +60,4 @@ class Admission::Privilege
     ].join ''
   end
 
-  # def self.order_to_list order
-  #   order.values.map(&:values).flatten.uniq
-  # end
-  #
-  # def self.get_inheritors_for list, order
-  #   list = [list] unless list.is_a? Array
-  #
-  #   privileges_list.select do |p|
-  #     list.any?{|ref_p| p.eql_or_inherits? ref_p }
-  #   end
-  # end
-
-  def self.order_to_array index
-    index.values.map(&:values).flatten.uniq
-  end
-
 end

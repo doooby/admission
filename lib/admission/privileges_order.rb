@@ -15,6 +15,14 @@ class Admission::PrivilegesOrder
     end
   end
 
+  def to_list
+    @list ||= index.values.map(&:values).flatten.uniq
+  end
+
+  def entitled_for ref_privilege
+    to_list.select{|privilege| privilege.eql_or_inherits? ref_privilege}
+  end
+
   class Definer
 
     attr_reader :definitions

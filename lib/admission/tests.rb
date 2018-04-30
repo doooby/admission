@@ -1,6 +1,7 @@
 module Admission::Test
 
   class << self
+    attr_accessor :order
     attr_accessor :all_privileges
 
     def assertion_failed_message arbitration, privilege
@@ -23,7 +24,7 @@ module Admission::Test
       block = case selector
         when String
           if inheritance
-            ref_privilege = UserStatus.privileges.get *Admission::Privilege.split_text_key(selector)
+            ref_privilege = order.get *Admission::Privilege.split_text_key(selector)
             ->(p){ p.eql_or_inherits? ref_privilege }
 
           else
@@ -33,7 +34,7 @@ module Admission::Test
         when Array
           if inheritance
             ref_privileges = selector.map do |s|
-              UserStatus.privileges.get *Admission::Privilege.split_text_key(s)
+              order.get *Admission::Privilege.split_text_key(s)
             end
             ->(p){
               ref_privileges.any?{|ref_p| p.eql_or_inherits? ref_p }

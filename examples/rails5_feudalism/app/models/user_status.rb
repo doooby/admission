@@ -56,10 +56,6 @@ class UserStatus < Admission::Status
     end
   end
 
-  def self.privileges_list
-    @privileges_list ||= Admission::Privilege.order_to_array(privileges)
-  end
-
   def self.rules
     @rules ||= Admission::ResourceArbitration.define_rules privileges do
 

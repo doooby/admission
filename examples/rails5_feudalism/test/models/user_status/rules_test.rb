@@ -4,7 +4,7 @@ class UserStatus::RulesTest < ActiveSupport::TestCase
 
   ALL_PRIVILEGES = []
   Person::COUNTRIES.each do |country|
-    UserStatus.privileges_list.each do |privilege|
+    UserStatus.privileges.to_list.each do |privilege|
       ALL_PRIVILEGES << privilege.dup_with_context(country)
     end
   end

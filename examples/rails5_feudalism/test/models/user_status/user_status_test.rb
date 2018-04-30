@@ -3,7 +3,7 @@ require 'test_helper'
 class UserStatusTest < ActiveSupport::TestCase
 
   test 'privileges order not changed' do
-    privs = UserStatus.privileges_list
+    privs = UserStatus.privileges.to_list
     assert_equal [Admission::Privilege], privs.map(&:class).uniq
     assert_equal %w[
       duke
@@ -15,7 +15,7 @@ class UserStatusTest < ActiveSupport::TestCase
   end
 
   test '#dump_privileges' do
-    privs = UserStatus.privileges_list.sort_by(&:text_key)
+    privs = UserStatus.privileges.to_list.sort_by(&:text_key)
     privs = privs.each_with_index.map{|p, i| p.dup_with_context (i % 3).to_s}
     hash = UserStatus.dump_privileges privs
     expected_hash = {
