@@ -60,15 +60,6 @@ class Admission::Privilege
     ].join ''
   end
 
-  def self.get_from_order order, name, level=nil
-    levels = order[name.to_sym] || return
-    if level && !level.empty?
-      levels[level.to_sym]
-    else
-      levels[Admission::Privilege::BASE_LEVEL_NAME]
-    end
-  end
-
   # def self.order_to_list order
   #   order.values.map(&:values).flatten.uniq
   # end

@@ -10,7 +10,7 @@ RSpec.describe 'actions_arbitrating' do
   end
 
   def privilege *args, context: nil
-    p = Admission::Privilege.get_from_order PRIVILEGES_ORDER, *args
+    p = PRIVILEGES_ORDER.get *args
     p = p.dup_with_context context if context
     p
   end

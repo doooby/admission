@@ -9,7 +9,7 @@ class UserStatus < Admission::Status
   end
 
   def self.privilege_for_country name, level, country
-    Admission::Privilege.get_from_order(privileges, name, level).dup_with_context country
+    privileges.get(name, level).dup_with_context country
   end
 
   def self.parse_privileges privileges

@@ -27,7 +27,7 @@ privileges_data_reducer = -> (privileges_data) {
     privileges_names = [privileges_names] unless privileges_names.is_a? Array
 
     privileges = privileges_names.map do |name|
-      privilege = Admission::Privilege.get_from_order PRIVILEGES_ORDER, *Admission::Privilege.split_text_key(name)
+      privilege = PRIVILEGES_ORDER.get *Admission::Privilege.split_text_key(name)
       privilege.dup_with_context country
     end
 

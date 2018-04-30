@@ -92,7 +92,7 @@ end
 # this is how a privilege is defined; context = country
 # `privileges` is given by `Admission#define_privileges`
 def self.privilege_for_country name, level, country
- Admission::Privilege.get_from_order(privileges, name, level).dup_with_context country
+ privileges.get(name, level).dup_with_context country
 end
 ```
 
@@ -120,7 +120,7 @@ You may want not to store privileges within the users table. In that case:
 ```ruby
 # privileges here is an array of records
 def self.parse_privileges privileges
-  privileges.map{|p| Admission::Privilege.get_from_order privileges, p.name, p.level}
+  privileges.map{|p| privileges.get p.name, p.level}
 end
 ```  
 

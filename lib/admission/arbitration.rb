@@ -81,8 +81,8 @@ class Admission::Arbitration
     end
 
     def privilege name, level=nil
-      @privilege = Admission::Privilege.get_from_order privilege_order, name, level
-      raise "no such privilege: #{name}-#{level}" unless @privilege
+      @privilege = privilege_order.get name, level
+      raise "no such privilege: #{name}#{Admission::Privilege::SEPARATOR}#{level}" unless @privilege
       yield
       @privilege = nil
     end

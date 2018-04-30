@@ -6,8 +6,13 @@ class Admission::PrivilegesOrder
     @index = index
   end
 
-  def [] name
-    index[name]
+  def get name, level=nil
+    levels = index[name.to_sym] || return
+    if level && !level.empty?
+      levels[level.to_sym]
+    else
+      levels[Admission::Privilege::BASE_LEVEL_NAME]
+    end
   end
 
   class Definer
