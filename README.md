@@ -32,8 +32,8 @@ A person can have multiple privileges, each to a different context (e.g. company
 
 Privileges needs to be predefined:
 ```ruby
-def self.privileges_index
-  @privileges_index ||= Admission::Privilege.define_order do
+def self.privileges
+  @privileges ||= Admission.define_privileges do
     privilege :human, levels: %i[adult adult_white_male]
     privilege :lord, inherits: %i[human]
     privilege :duke, inherits: %i[human]
@@ -42,7 +42,7 @@ def self.privileges_index
 end
 
 def self.rules
-  @rules ||= Admission::ResourceArbitration.define_rules privileges_index do
+  @rules ||= Admission::ResourceArbitration.define_rules privileges do
     privilege :god do
       allow :users, :index
     end
@@ -81,7 +81,7 @@ def self.parse_privileges privileges
   (privileges.keys & Person::COUNTRIES).each do |country|
     records = privileges[country.to_s].presence || next
     records.uniq.each do |record|
-      name, level = record.split '-'
+      name, level = Admission::Privilege.split_text_key name
       list << privilege_for_country(name, level, country)
     end
   end
@@ -90,9 +90,9 @@ def self.parse_privileges privileges
 end
   
 # this is how a privilege is defined; context = country
-# `privileges_index` is given by `Admission::Privilege#define_order`
+# `privileges` is given by `Admission#define_privileges`
 def self.privilege_for_country name, level, country
- Admission::Privilege.get_from_order(privileges_index, name, level).dup_with_context country
+ Admission::Privilege.get_from_order(privileges, name, level).dup_with_context country
 end
 ```
 
@@ -120,7 +120,7 @@ You may want not to store privileges within the users table. In that case:
 ```ruby
 # privileges here is an array of records
 def self.parse_privileges privileges
-  privileges.map{|p| Admission::Privilege.get_from_order privileges_index, p.name, p.level}
+  privileges.map{|p| Admission::Privilege.get_from_order privileges, p.name, p.level}
 end
 ```  
 

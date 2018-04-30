@@ -1,9 +1,9 @@
 require_relative '../../spec_helper'
 
-RSpec.describe Admission::Privilege::OrderDefiner do
+RSpec.describe Admission::PrivilegesOrder::Definer do
 
   def define_privileges &block
-    Admission::Privilege::OrderDefiner.define &block
+    Admission::PrivilegesOrder::Definer.define &block
   end
 
   def privilege *args, inherits: nil
@@ -12,7 +12,7 @@ RSpec.describe Admission::Privilege::OrderDefiner do
     p
   end
 
-  let(:definer){ Admission::Privilege::OrderDefiner.new }
+  let(:definer){ Admission::PrivilegesOrder::Definer.new }
 
 
   describe '.define' do

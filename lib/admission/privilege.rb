@@ -1,8 +1,9 @@
 class Admission::Privilege
 
-  RESERVED_ID = :'^'
+  RESERVED_ID = :'^'.freeze
   TOP_LEVEL_KEY = RESERVED_ID
   BASE_LEVEL_NAME = :base
+  SEPARATOR = '-'.freeze
 
   attr_reader :name, :level, :hash
   attr_reader :inherited, :context
@@ -37,7 +38,11 @@ class Admission::Privilege
   end
 
   def text_key
-    level == BASE_LEVEL_NAME ? name.to_s : "#{name}-#{level}"
+    @text_key ||= level == BASE_LEVEL_NAME ? name.to_s : "#{name}#{SEPARATOR}#{level}"
+  end
+
+  def self.split_text_key value
+    return value.split(SEPARATOR)
   end
 
   def inspect
@@ -55,12 +60,8 @@ class Admission::Privilege
     ].join ''
   end
 
-  def self.define_order &block
-    Admission::Privilege::OrderDefiner.define &block
-  end
-
-  def self.get_from_order index, name, level=nil
-    levels = index[name.to_sym] || return
+  def self.get_from_order order, name, level=nil
+    levels = order[name.to_sym] || return
     if level && !level.empty?
       levels[level.to_sym]
     else
@@ -68,77 +69,20 @@ class Admission::Privilege
     end
   end
 
+  # def self.order_to_list order
+  #   order.values.map(&:values).flatten.uniq
+  # end
+  #
+  # def self.get_inheritors_for list, order
+  #   list = [list] unless list.is_a? Array
+  #
+  #   privileges_list.select do |p|
+  #     list.any?{|ref_p| p.eql_or_inherits? ref_p }
+  #   end
+  # end
+
   def self.order_to_array index
     index.values.map(&:values).flatten.uniq
-  end
-
-  class OrderDefiner
-
-    attr_reader :definitions
-
-    def initialize
-      @definitions = {}
-    end
-
-    def privilege name, levels: [], inherits: nil
-      name = name.to_sym
-      if ([name] + levels).any?{|id| id == Admission::Privilege::RESERVED_ID }
-        raise "reserved name `#{Admission::Privilege::RESERVED_ID}` !"
-      end
-
-      levels.unshift Admission::Privilege::BASE_LEVEL_NAME
-      levels.map!{|level| Admission::Privilege.new name, level}
-
-      inherits = nil if inherits && inherits.empty?
-      if inherits
-        inherits = *inherits
-        inherits = inherits.map(&:to_sym).uniq
-      end
-
-      @definitions[name] = {levels: levels, inherits: inherits}
-    end
-
-    def self.define &block
-      definer = new
-      definer.instance_exec &block
-
-      definer.send :setup_inheritance
-      definer.send :build_index
-    end
-
-    private
-
-    def setup_inheritance
-      # set inheritance for all privileges
-      definitions.values.each do |levels:, inherits:|
-        levels.each_with_index do |privilege, index|
-          if index > 0 # higher level of privilege, inherits one step lower level
-            privilege.inherits_from levels[index - 1]
-
-          elsif inherits # lowest level, inherits top level of other privileges
-            inherits = inherits.map{|name| definitions[name][:levels].last if definitions.has_key? name}
-            privilege.inherits_from *inherits
-
-          end
-        end
-      end
-    end
-
-    def build_index
-      definitions.each_pair.reduce({}) do |h, pair|
-        name = pair[0]
-        levels = pair[1][:levels]
-
-        levels_hash = levels.reduce({Admission::Privilege::TOP_LEVEL_KEY => levels.last}) do |lh, privilege|
-          lh[privilege.level] = privilege
-          lh
-        end.freeze
-
-        h[name] = levels_hash
-        h
-      end.freeze
-    end
-
   end
 
 end

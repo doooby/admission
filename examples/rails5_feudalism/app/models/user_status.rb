@@ -9,7 +9,7 @@ class UserStatus < Admission::Status
   end
 
   def self.privilege_for_country name, level, country
-    Admission::Privilege.get_from_order(privileges_index, name, level).dup_with_context country
+    Admission::Privilege.get_from_order(privileges, name, level).dup_with_context country
   end
 
   def self.parse_privileges privileges
@@ -20,7 +20,7 @@ class UserStatus < Admission::Status
     (privileges.keys & Person::COUNTRIES).each do |country|
       records = privileges[country.to_s].presence || next
       records.uniq.each do |record|
-        name, level = record.split '-'
+        name, level = Admission::Privilege.split_text_key record
         list << privilege_for_country(name, level, country)
       end
     end
@@ -48,8 +48,8 @@ class UserStatus < Admission::Status
     end
   end
 
-  def self.privileges_index
-    @privileges_index ||= Admission::Privilege.define_order do
+  def self.privileges
+    @privileges ||= Admission.define_privileges do
       privilege :human, levels: %i[adult adult_white_male]
       privilege :lord, inherits: %i[human]
       privilege :duke, inherits: %i[human]
@@ -57,11 +57,11 @@ class UserStatus < Admission::Status
   end
 
   def self.privileges_list
-    @privileges_list ||= Admission::Privilege.order_to_array(privileges_index)
+    @privileges_list ||= Admission::Privilege.order_to_array(privileges)
   end
 
   def self.rules
-    @rules ||= Admission::ResourceArbitration.define_rules privileges_index do
+    @rules ||= Admission::ResourceArbitration.define_rules privileges do
 
       get_object_person = -> (object) {
         if object.is_a? Person

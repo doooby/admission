@@ -23,7 +23,7 @@ module Admission::Test
       block = case selector
         when String
           if inheritance
-            ref_privilege = Admission::Privilege.get_from_order UserStatus.privileges, *selector.split('-')
+            ref_privilege = Admission::Privilege.get_from_order UserStatus.privileges, *Admission::Privilege.split_text_key(selector)
             ->(p){ p.eql_or_inherits? ref_privilege }
 
           else
@@ -33,7 +33,7 @@ module Admission::Test
         when Array
           if inheritance
             ref_privileges = selector.map do |s|
-              Admission::Privilege.get_from_order UserStatus.privileges, *s.split('-')
+              Admission::Privilege.get_from_order UserStatus.privileges, *Admission::Privilege.split_text_key(s)
             end
             ->(p){
               ref_privileges.any?{|ref_p| p.eql_or_inherits? ref_p }

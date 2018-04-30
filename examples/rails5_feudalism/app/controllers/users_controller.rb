@@ -64,7 +64,7 @@ class UsersController < ApplicationController
     names = privileges[:name].presence || []
 
     list = countries.zip(names).map do |country, name|
-      name, level = name.split '-'
+      name, level = Admission::Privilege.split_text_key name
       UserStatus.privilege_for_country name, level.presence, country
     end
 

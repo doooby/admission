@@ -9,4 +9,9 @@ module Admission
 
   end
 
+  def self.define_privileges &block
+    index = Admission::PrivilegesOrder::Definer.define &block
+    Admission::PrivilegesOrder.new index
+  end
+
 end
