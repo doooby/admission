@@ -84,10 +84,6 @@ module Admission
         actions = all ? ALL_ACTIONS : actions
         set_resolver actions, resolver
       end
-      def for_resource *as, **ks
-        warn '`ActionAdmission#for_resource` is deprecated method name, use `#resource_for`.'
-        resource_for *as, **ks
-      end
 
       # Sets `action_admission` to be ignored for given actions.
       # Useful when you have `action_admission` included inherently.
