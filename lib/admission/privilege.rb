@@ -9,11 +9,9 @@ class Admission::Privilege
   attr_reader :inherited, :context
 
   def initialize name, level=nil
-    name = name.to_sym
-    @name = name
-    level = level ? level.to_sym : BASE_LEVEL_NAME
-    @level = level
-    @hash = [name, level].hash
+    @name = name.to_sym
+    @level = level ? level.to_sym : BASE_LEVEL_NAME
+    @hash = [@name, @level].hash
   end
 
   def inherits_from *privileges

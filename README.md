@@ -268,6 +268,7 @@ current_user.status.request! :show, [@owner, :cars]
 - [x] minitest helpers
 - [ ] rspec helpers
 - [ ] test guides
+- [ ] tests for tests helpers
 - [ ] rails example
 - [ ] admission denied exemplary page (inspired by rails 4O4 & 500 page)
 - [ ] some rake helpers to print all scopes & actions

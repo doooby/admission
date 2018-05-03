@@ -150,4 +150,43 @@ RSpec.describe Admission::Privilege do
 
   end
 
+  describe 'operations over sets of privileges' do
+
+    it 'works with both name & level' do
+      set1 = [
+          new_privilege(:man),
+          new_privilege(:superman),
+          new_privilege(:nowomanman)
+      ]
+      set2 = [
+          new_privilege(:nowomanman),
+          new_privilege(:nowomanman, :womb)
+      ]
+
+      expect((set1 & set2).map(&:text_key).sort).to eq(%w[nowomanman])
+      expect((set1 | set2).map(&:text_key).sort).to eq(%w[man nowomanman nowomanman-womb superman])
+      expect((set1 - set2).map(&:text_key).sort).to eq(%w[man superman])
+      expect((set2 - set1).map(&:text_key).sort).to eq(%w[nowomanman-womb])
+      expect((set1 + set2).map(&:text_key).sort).to eq(%w[man nowomanman nowomanman nowomanman-womb superman])
+    end
+
+    it 'ignores context' do
+      set1 = [
+          new_privilege(:man),
+          new_privilege(:man).dup_with_context('a')
+      ]
+      set2 = [
+          new_privilege(:man),
+          new_privilege(:man).dup_with_context('b')
+      ]
+
+      expect((set1 & set2).length).to eq(1)
+      expect((set1 | set2).length).to eq(1)
+      expect((set1 - set2).length).to eq(0)
+      expect((set2 - set1).length).to eq(0)
+      expect((set1 + set2).length).to eq(4)
+    end
+
+  end
+
 end
