@@ -32,7 +32,7 @@ module Admission
       # The default callback method that assures the admission request.
       # It is included automatically if you include `Admission::Rails::ControllerAddon`.
       #
-      # `#action_admission` is used to get the scope for the action (`#action_name`).
+      # `.action_admission` is used to get the scope for the action (`#action_name`).
       def assure_admission
         action = action_name
         scope_resolver = self.class.action_admission.scope_for_action action

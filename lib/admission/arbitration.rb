@@ -73,7 +73,7 @@ class Admission::Arbitration
 
   class RulesBuilder
 
-    attr_reader :privilege_order
+    attr_reader :rules, :privilege_order
 
     def initialize privilege_order
       @rules = []
@@ -88,7 +88,7 @@ class Admission::Arbitration
     end
 
     def allow *actions, &block
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      validate_action_names! actions
       add_allowance_rule actions.flatten, (block || true)
     end
 
@@ -97,7 +97,7 @@ class Admission::Arbitration
     end
 
     def forbid *actions
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      validate_action_names! actions
       add_allowance_rule actions.flatten, :forbidden
     end
 
@@ -127,6 +127,12 @@ class Admission::Arbitration
 
       index_instance.values.each &:freeze
       index_instance.freeze
+    end
+
+    private
+
+    def validate_action_names! actions
+      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
     end
 
   end

@@ -61,40 +61,28 @@ class Admission::ResourceArbitration < Admission::Arbitration
   class RulesBuilder < Admission::Arbitration::RulesBuilder
 
     def allow scope, *actions, &block
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
-      raise "invalid scope name" unless scope.respond_to? :to_sym
-      add_allowance_rule actions.flatten, (block || true), scope: scope.to_sym
+      validate_action_names! actions
+      add_allowance_rule actions.flatten, (block || true),
+          scope: normalize_scope(scope)
     end
 
     def allow_all scope, &block
-      raise "invalid scope name" unless scope.respond_to? :to_sym
-      add_allowance_rule [Admission::ALL_ACTION], (block || true), scope: scope.to_sym
+      add_allowance_rule [Admission::ALL_ACTION], (block || true),
+          scope: normalize_scope(scope)
     end
 
     def forbid scope, *actions
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
-      raise "invalid scope name" unless scope.respond_to? :to_sym
-      add_allowance_rule actions.flatten, :forbidden, scope: scope.to_sym
+      validate_action_names! actions
+      add_allowance_rule actions.flatten, :forbidden,
+          scope: normalize_scope(scope)
     end
 
     def allow_resource resource, *actions, &block
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+      validate_action_names! actions
       raise "block not given" unless block
       block.instance_variable_set :@resource_arbiter, true
-      scope = case resource
-        when Symbol then resource
-        when Array then nested_scope(*resource)
-        else type_to_scope(resource)
-      end
-      add_allowance_rule actions.flatten, block, scope: scope
-    end
-
-    def type_to_scope resource
-      Admission::ResourceArbitration.type_to_scope resource
-    end
-
-    def nested_scope resource, scope
-      Admission::ResourceArbitration.nested_scope resource, scope
+      add_allowance_rule actions.flatten, block,
+          scope: normalize_scope(resource)
     end
 
     def create_index
@@ -119,6 +107,17 @@ class Admission::ResourceArbitration < Admission::Arbitration
         h.freeze
       end
       index_instance.freeze
+    end
+
+    private
+
+    def normalize_scope scope
+      case scope
+        when Symbol then scope
+        when Array then Admission::ResourceArbitration.nested_scope(*scope)
+        when Class then Admission::ResourceArbitration.type_to_scope(scope)
+        else raise 'invalid scope'
+      end
     end
 
   end
