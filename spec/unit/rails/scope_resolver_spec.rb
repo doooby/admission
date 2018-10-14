@@ -4,7 +4,7 @@ RSpec.describe Admission::Rails::ScopeResolver do
 
   it '.new freezes the instance' do
     instance = Admission::Rails::ScopeResolver.new nil
-    expect(instance.instance_variable_get '@scope').to be_nil
+    expect(instance.instance_variable_get '@getter').to be_nil
     expect(instance).to be_frozen
   end
 
@@ -53,11 +53,11 @@ RSpec.describe Admission::Rails::ScopeResolver do
 
     it 'creates instance' do
       instance = Admission::Rails::ScopeResolver.using :to_s
-      expect(instance.instance_variable_get '@scope').to be(:to_s)
+      expect(instance.instance_variable_get '@getter').to be(:to_s)
 
       proc = ->{}
       instance = Admission::Rails::ScopeResolver.using proc
-      expect(instance.instance_variable_get '@scope').to be(proc)
+      expect(instance.instance_variable_get '@getter').to be(proc)
     end
 
     it 'prints nice error message' do

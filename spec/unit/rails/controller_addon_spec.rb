@@ -40,15 +40,4 @@ RSpec.describe Admission::Rails::ControllerAddon do
     expect(controller.private_method_defined? :assure_admission).to be_truthy
   end
 
-  it '#assure_admission request admission with particular scope' do
-    _, instance = stub_action_admission
-    scope_resolver = double('scope_resolver')
-    allow(scope_resolver).to receive(:apply).and_yield(:application)
-    allow(instance).to receive(:scope_for_action).and_return(scope_resolver)
-
-    controller_instance = controller.new
-    expect(controller_instance).to receive(:request_admission!).with(:home, :application)
-    controller_instance.send :assure_admission
-  end
-
 end

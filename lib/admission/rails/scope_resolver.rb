@@ -3,21 +3,23 @@ module Admission
     class ScopeResolver
 
       def initialize scope
-        @scope = scope
+        @getter = scope
         freeze
       end
 
       def apply controller_instance
-        case @scope
+        scope = case @getter
           when Symbol
-            yield controller_instance.send(@scope)
+            controller_instance.send @getter
 
           when Proc
-            yield controller_instance.instance_exec(&@scope)
+            controller_instance.instance_exec &@getter
 
           else # void
 
         end
+
+        yield scope if scope
       end
 
       def self.void

@@ -112,21 +112,21 @@ RSpec.describe Admission::Rails::ActionAdmission do
     it 'uses resource finder as the resolver' do
       instance.resource_for :aaa
       resolver = instance.resolvers['aaa']
-      expect(resolver.instance_variable_get '@scope').to eq(:find_user)
+      expect(resolver.instance_variable_get '@getter').to eq(:find_user)
       expect(instance.resolvers.keys.length).to eq(1)
     end
 
     it 'uses scope helper as the resolver' do
       instance.resource_for :aaa, nested: true
       resolver = instance.resolvers['aaa']
-      expect(resolver.instance_variable_get '@scope').to eq(:users_admission_scope)
+      expect(resolver.instance_variable_get '@getter').to eq(:users_admission_scope)
       expect(instance.resolvers.keys.length).to eq(1)
     end
 
     it 'sets the finder for all actions' do
       instance.resource_for all: true
       resolver = instance.resolvers[Admission::Rails::ActionAdmission::ALL_ACTIONS]
-      expect(resolver.instance_variable_get '@scope').to eq(:find_user)
+      expect(resolver.instance_variable_get '@getter').to eq(:find_user)
       expect(instance.resolvers.keys.length).to eq(1)
     end
 
@@ -151,20 +151,86 @@ RSpec.describe Admission::Rails::ActionAdmission do
 
   end
 
+  describe '#before_helper' do
+
+    it 'sets correct filters' do
+      instance.before_helper ->{}, only: :action1
+      expect(instance.before_helpers.last.applicable? :action1).to eq(true)
+
+      instance.before_helper ->{}, only: :action1
+      expect(instance.before_helpers.last.applicable? :action2).to eq(false)
+
+      instance.before_helper ->{}, only: %i[action1]
+      expect(instance.before_helpers.last.applicable? :action1).to eq(true)
+
+      instance.before_helper ->{}, except: :action1
+      expect(instance.before_helpers.last.applicable? :action1).to eq(false)
+
+      instance.before_helper ->{}, except: %i[action1]
+      expect(instance.before_helpers.last.applicable? :action2).to eq(true)
+    end
+
+    it 'sets correct helper' do
+      dummy = double 'controller_with_m1'
+      expect(dummy).to receive(:some_method1)
+      instance.before_helper ->{ send :some_method1 }
+      instance.before_helpers.last.apply dummy
+
+      dummy = double 'controller_with_m2'
+      expect(dummy).to receive(:some_method2)
+      instance.before_helper &(->{ send :some_method2 })
+      instance.before_helpers.last.apply dummy
+
+      dummy = double 'controller_with_m3'
+      expect(dummy).to receive(:some_method3)
+      instance.before_helper :some_method3
+      instance.before_helpers.last.apply dummy
+    end
+
+  end
+
   describe '#scope_for_action' do
 
     it 'takes particular action resolver' do
       instance.resolvers['a1'] = :find_user
-      expect(instance.scope_for_action 'a1').to eq(:find_user)
+      expect(instance.send :scope_for_action, 'a1').to eq(:find_user)
     end
 
     it 'takes fallback all-action resolver' do
       instance.resolvers[Admission::Rails::ActionAdmission::ALL_ACTIONS] = :find_user
-      expect(instance.scope_for_action 'a1').to eq(:find_user)
+      expect(instance.send :scope_for_action, 'a1').to eq(:find_user)
     end
 
     it 'default resolver' do
-      expect(instance.scope_for_action 'a1').to eq(Admission::Rails::ScopeResolver.default)
+      expect(instance.send :scope_for_action, 'a1').to eq(Admission::Rails::ScopeResolver.default)
+    end
+
+  end
+
+  describe '#invoke!' do
+
+    it 'requests admission with particular scope' do
+      scope_resolver = double('scope_resolver')
+      allow(scope_resolver).to receive(:apply).and_yield(:application)
+      allow(instance).to receive(:scope_for_action).and_return scope_resolver
+
+      controller = double 'controller'
+      allow(controller).to receive(:action_name).and_return('a1')
+      expect(controller).to receive(:request_admission!).with(:a1, :application)
+      instance.invoke! controller
+    end
+
+    it 'applies before filters' do
+      controller = double 'controller'
+      allow(controller).to receive(:controller_name).and_return('app')
+      allow(controller).to receive(:action_name).and_return('a1')
+      allow(controller).to receive(:request_admission!)
+
+      instance.before_helper :before1
+      expect(controller).to receive(:before1)
+      instance.before_helper :before2, except: :a1
+      expect(controller).not_to receive(:before1)
+      instance.invoke! controller
     end
 
   end

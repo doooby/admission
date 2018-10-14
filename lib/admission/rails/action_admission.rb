@@ -4,7 +4,7 @@ module Admission
 
       ALL_ACTIONS = '^'.freeze
 
-      attr_reader :controller, :resolvers
+      attr_reader :controller, :before_helpers, :resolvers
 
       def initialize controller
         @controller = controller
@@ -97,11 +97,40 @@ module Admission
         set_resolver actions, ScopeResolver.void
       end
 
-      # run-time means to find the scope resolver for the action
-      def scope_for_action action
-        resolvers[action] ||
-            resolvers[ALL_ACTIONS] ||
-            ScopeResolver.default
+      # Adds a callback that is applied before mandatory admission request
+      # can be filter per actions using options `only` and `except`
+      #
+      #   action_admission.before_helper :helper_method, only: :some_action
+      #   action_admission.before_helper ->{ do_something }, only: [:some_action]
+      #   action_admission.before_helper(except: %i[this and_this]){ do_something }
+      #
+      def before_helper helper=nil, only: nil, except: nil, &block_helper
+        only = [*only].flatten.compact
+        only = nil if only.empty?
+        except = [*except].flatten.compact
+        except = nil if except.empty?
+        (@before_helpers ||= []).push(
+            BeforeHelper.new (block_helper || helper), only, except
+        )
+      end
+
+      # this is the run-time means to resolve admission:
+      # - it finds the scope for given action
+      # - it applies all before helpers
+      # - it request admission per action and scope
+      def invoke! controller_instance
+        action = controller_instance.action_name
+        scope_resolver = scope_for_action action
+
+        scope_resolver.apply controller_instance do |scope|
+          action = action.to_sym
+
+          before_helpers && before_helpers.each do |helper|
+            helper.apply controller_instance if helper.applicable? action
+          end
+
+          controller_instance.request_admission! action, scope
+        end
       end
 
       private
@@ -118,6 +147,41 @@ module Admission
         end
       end
 
+      def scope_for_action action
+        resolvers[action] ||
+            resolvers[ALL_ACTIONS] ||
+            ScopeResolver.default
+      end
+
     end
+
+    class BeforeHelper
+
+      def initialize helper, only, except
+        @helper = case helper
+          when Proc, Symbol then helper
+          else raise 'bad usage - give either callable or symbol for method name'
+        end
+
+        @only = only
+        @except = except
+      end
+
+      def applicable? action
+        (@only ? @only.include?(action) : true) &&
+            (@except ? !@except.include?(action) : true)
+      end
+
+      def apply controller
+        case @helper
+          when Proc
+            controller.instance_exec &@helper
+          when Symbol
+            controller.send @helper
+        end
+      end
+
+    end
+
   end
 end

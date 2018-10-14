@@ -235,9 +235,7 @@ privilege :human do
 end
  
 class CarsController < ApplicationController
-  skip_before_action :assure_admission
-  before_action :find_car, except: %i[index]
-  before_action :assure_admission
+  action_admission.before_helper :find_car, except: %i[index]
   action_admission.resource_for all: true, nested: true
   
   # finds car ant it's owner
@@ -272,4 +270,4 @@ current_user.status.request! :show, [@owner, :cars]
 - [ ] rails example
 - [ ] admission denied exemplary page (inspired by rails 4O4 & 500 page)
 - [ ] some rake helpers to print all scopes & actions
-- [ ] some helper to avoid the weirdness of skipping & re-attaching the callback for nested resources
+- [x] some helper to avoid the weirdness of skipping & re-attaching the callback for nested resources
