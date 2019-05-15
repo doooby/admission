@@ -1,0 +1,37 @@
+<h3>Articles</h3>
+
+<% Article.all.each do |article| %>
+  <div>
+    <%= link_to article.title, article_path(article) %>
+  </div>
+<% end %>
+
+<br/>
+
+<%= link_to 'new article', new_article_path if current_user.status.can? :new, :articles %>
+
+<h3>Users</h3>
+<small>(Here you can select a user to log-in, or logout <%= link_to 'here', '/logout', 'data-method': 'post' %>.)</small>
+
+<table>
+  <thead>
+    <th>Name</th>
+    <th>Privilege</th>
+    <th></th>
+    <th></th>
+  </thead>
+  <tbody>
+    <% User.all.each do |user| %>
+      <tr>
+        <td><%= user.name %></td>
+        <td><%= user.privilege_text %></td>
+        <td><%= link_to 'edit', edit_user_path(user) %></td>
+        <td><%= link_to 'login', "/login?user_id=#{user.id}", 'data-method': 'post' %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br/>
+
+<%= link_to 'new user', new_user_path if current_user.status.can? :new, :users %>

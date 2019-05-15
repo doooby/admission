@@ -129,7 +129,7 @@ module Admission
             helper.apply controller_instance if helper.applicable? action
           end
 
-          controller_instance.request_admission! action, scope
+          controller_instance.send :request_admission!, action, scope
         end
       end
 

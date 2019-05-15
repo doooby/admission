@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rails52Blog</title>
+    <%= csrf_meta_tags %>
+    <%= javascript_include_tag 'application' %>
+  </head>
+
+  <body>
+    <h1>Admission Example - Blog on Rails</h1>
+
+    <% if current_user %>
+      Currently logged in as: <strong><%= current_user.name %> (<%= current_user.privilege_text %>)</strong>
+    <% end %>
+
+    <% if flash[:notice] %>
+      <h3>Notice:</h3>
+      <%= flash[:notice] %>
+    <% end %>
+
+    <%= yield %>
+  </body>
+</html>

@@ -14,11 +14,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
     if from_rules
       decision = from_rules[privilege]
       if Proc === decision
-        if decision.instance_variable_get :@resource_arbiter
-          decision = @person.instance_exec @resource, @context, &decision
-        else
-          decision = @person.instance_exec @context, &decision
-        end
+        decision = process_proc_decision decision
       end
 
       unless Admission::VALID_DECISION.include? decision
@@ -42,7 +38,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
   end
 
   def case_to_s
-    "`#{@request}` over `#{@scope}`#{Admission::ResourceArbitration.resource_to_s @resource if @resource}"
+    resource = if @resource
+      Admission::ResourceArbitration.resource_to_s @resource
+    end
+    "#{request} -> #{@scope}#{' ' if resource}#{resource if resource}"
   end
 
   def self.type_to_scope type
@@ -55,7 +54,31 @@ class Admission::ResourceArbitration < Admission::Arbitration
   end
 
   def self.resource_to_s resource
-    ", resource: #{resource.respond_to?(:id) ? "#{resource.class.name}[#{resource.id}]" : resource}"
+    resource = if resource.respond_to? :id
+        "#{resource.class.name}[#{resource.id || 'new'}]"
+      else
+        resource
+    end
+  end
+
+  private 
+
+  def process_proc_decision proc
+    args = if proc.instance_variable_get :@resource_arbiter
+      case proc.arity
+        when 1 then [@resource]
+        when 2 then [@resource, @context]
+      end
+    else
+      case proc.arity
+        when 1 then [@context]
+        when 0 then []
+      end
+    end
+
+    raise "bad arguments count for rule at #{proc.source_location}" unless args
+
+    @person.instance_exec *args, &proc
   end
 
   class RulesBuilder < Admission::Arbitration::RulesBuilder

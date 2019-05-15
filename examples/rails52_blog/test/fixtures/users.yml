@@ -1,0 +1,18 @@
+user1:
+  name: Santos
+  privilege: user
+
+user2:
+  name: Janiece
+
+authorA:
+  name: Claude
+  privilege: author
+
+authorB:
+  name: Ione
+  privilege: author
+
+admin:
+  name: Stacee
+  privilege: admin

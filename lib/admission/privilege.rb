@@ -47,15 +47,17 @@ class Admission::Privilege
     "#<#{[
         'Privilege',
         "key=#{text_key}",
-        (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]")
-    ].compact.join ' '}>"
+        (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]"),
+        (context && "context=#{context}")
+    ].compact.join ' '} >"
   end
 
   def to_s
-    [
-        "privilege #{text_key}",
-        (context && ", context #{context}")
-    ].join ''
+    if context
+      "#{text_key}[#{context}]"
+    else
+      text_key
+    end
   end
 
 end

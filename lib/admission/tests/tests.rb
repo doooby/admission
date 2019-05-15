@@ -1,167 +1,232 @@
 module Admission::Tests
 
   class << self
+
     attr_accessor :order
-    attr_accessor :all_privileges
-
-    def assertion_failed_message arbitration, privilege
-      'Admission denied to %s applying %s.' % [
-          arbitration.case_to_s,
-          privilege.to_s
-      ]
+    
+    attr_writer :all_privileges
+    def all_privileges
+      @all_privileges ||= PrivilegesHelper.new(order.to_list)
     end
 
-    def refutation_failed_message arbitration, privilege
-      'Admission given to %s applying %s.' % [
-          arbitration.case_to_s,
-          privilege.to_s
-      ]
-    end
-
-    def separate_privileges selector=nil, inheritance: true, list: all_privileges, &block
-      selector = block unless selector
-      selector = [selector] if selector.is_a? String
-
-      block = case selector
-      when Array
-        if inheritance
-          ref_privileges = selector.map do |s|
-            order.get *Admission::Privilege.split_text_key(s)
-          end
-          ->(p){
-            ref_privileges.any?{|ref_p| p.eql_or_inherits? ref_p }
-          }
-
-        else
-          ->(p){ selector.include? p.text_key }
-
+    def fail_message case_text, privileges_to_assert, privileges_to_refute
+      normalize_group = -> (group) {
+        if group && !group.empty?
+          group.map(&:to_s).join(', ')
         end
+      }
 
-      when Proc
-        selector
+      to_assert = normalize_group.(privileges_to_assert)
+      to_refute = normalize_group.(privileges_to_refute)
 
-      else raise ArgumentError.new('bad selector type')
-      end
+      [
+        "Admission: #{case_text}",
+        ("\tfailed to assert for: #{to_assert}" if to_assert),
+        ("\tfailed to refute for: #{to_refute}" if to_refute),
+      ].join "\n"
+    end
 
-      list.partition &block
+    def process_rule status, privilege, request, scope, &block
+      arbitration = status.instantiate_arbitration request, scope
+  
+      fn = -> (p) {
+        arbitration.prepare_sitting p.context
+        result = arbitration.rule_per_privilege(p).eql?(true)
+        block.call result, p, arbitration
+      }
+  
+      [privilege].flatten.compact.to_a.each(&fn)
     end
 
   end
 
-  @all_privileges = []
+  class RuleHelper
 
-  class Evaluation
+    attr_reader :request, :to_assert, :to_refute
+    attr_accessor :status, :scope, :scope_label
+  
+    def initialize context, request
+      @context = context
+      @request = request
+    end
+  
+    def to_assert= *privileges
+      privileges = privileges.flatten.compact
+      @to_assert = privileges unless privileges.empty?
+    end
+  
+    def to_refute= *privileges
+      privileges = privileges.flatten.compact
+      @to_refute = privileges unless privileges.empty?
+    end
+  
+    # cached the `@failed` as: `{to_assert: [], to_refute: []}`
+    def result
+      @failed = {
+        to_assert: nil,
+        to_refute: nil
+      }
 
-    attr_reader :status, :arbitration
+      if to_assert
+        failed = to_assert.reject &(method :rule_per_privilege)
+        @failed[:to_assert] = failed unless failed.empty?
+      end
 
-    def initialize status, scope
-      @status = status
-      @scope = scope
+      if to_refute
+        failed = to_refute.select &(method :rule_per_privilege)
+        @failed[:to_assert] = failed unless failed.empty?
+      end
+
+      @failed.values.all? &:nil?
+    end
+    alias :call :result
+  
+    def fail_msg
+      Admission::Tests.fail_message(
+        scope_msg, 
+        @failed[:to_assert], 
+        @failed[:to_refute]
+      )
+    end
+  
+    private
+  
+    def arbitration
+      @arbitration ||= status.instantiate_arbitration(request, scope)
     end
 
-    def request= name
-      @arbitration = status.instantiate_arbitration name.to_sym, @scope
-    end
-
-    def for_request name
-      self.request = name
-      self
-    end
-
-    def evaluate privilege
+    def rule_per_privilege privilege
       arbitration.prepare_sitting privilege.context
       arbitration.rule_per_privilege(privilege).eql?(true)
     end
-
-    def evaluate_groups to_assert, to_refute
-      to_assert = to_assert.map{|p| ContextSpecificPrivilege.new p}
-      to_refute = to_refute.map{|p| ContextSpecificPrivilege.new p}
-      sorted = (to_assert + to_refute).sort_by{|p| p.privilege.context}
-      admissible, denied = sorted.partition{|p| evaluate p.privilege}
-
-      [
-          (denied - to_refute),
-          (admissible - to_assert)
-      ]
+  
+    def scope_msg
+      if scope_label
+        "#{@request} -> #{arbitration.scope} (#{scope_label})"
+      else
+        arbitration.case_to_s
+      end
     end
-
-    def messages_for_groups should, should_not
-      [
-          should.map{|p| Admission::Tests.assertion_failed_message arbitration, p.privilege},
-          should_not.map{|p| Admission::Tests.refutation_failed_message arbitration, p.privilege}
-      ].flatten
-    end
-
+  
   end
 
-  class ContextSpecificPrivilege
+  class PrivilegesHelper
 
-    attr_reader :privilege
+    attr_reader :to_a
+    alias :to_ary :to_a
 
-    def initialize privilege
-      @privilege = privilege
-      @hash = [privilege.name, privilege.level, privilege.context].hash
+    def initialize list
+      @to_a = list.to_a
     end
 
-    def eql? other
-      hash == other.hash
+    def select *args, **kwargs, &block
+      selector = build_selector *args, **kwargs, &block
+      PrivilegesHelper.new to_a.select(&selector)
     end
 
-  end
-
-  class RuleCheckContext
-
-    attr_reader :action
-
-    def initialize
-      @evaluations = []
-      action = yield self
-      self.set_rule_check_action = action if !self.action && Proc === action
+    def reject *args, **kwargs, &block
+      selector = build_selector *args, **kwargs, &block
+      PrivilegesHelper.new to_a.reject(&selector)
     end
 
-    def data
-      @data ||= {}
-    end
-
-    def set value
-      case value
-      when Proc then @data_builder = value
-      when Hash then @data = value
-      else raise('context must be Hash or Proc')
+    def partition *args, **kwargs, &block
+      selector = build_selector *args, **kwargs, &block
+      to_a.partition(&selector).map do |list|
+        PrivilegesHelper.new list
       end
     end
 
-    def prepare *args, &block
-      raise 'context is static (i.e. context was not set to a Proc)' unless @data_builder
-      @data = @data_builder.call *args, &block
-    end
+    private
 
-    def set_rule_check_action= action
-      @action = action
-    end
+    def build_selector selector=nil, inheritance: true, &block
+      selector = block unless selector
+      selector = [selector] if selector.is_a? String
 
-    def [] value
-      data[value]
-    end
+      case selector
+        when Array
+          if inheritance
+            ref_privileges = selector.map do |s|
+              Admission::Tests.order.get *Admission::Privilege.split_text_key(s)
+            end
+            ->(p){
+              ref_privileges.any?{|ref_p| p.eql_or_inherits? ref_p }
+            }
 
-    def []= name, value
-      data[name] = value
-    end
+          else
+            ->(p){ selector.include? p.text_key }
 
-    def add_evaluation *args
-      evaluation = Evaluation.new *args
-      @evaluations.push evaluation
-      evaluation
-    end
+          end
 
-    def evaluate request
-      raise 'no evaluation preset' if @evaluations.empty?
-      @evaluations.each do |evaluation|
-        evaluation.request = request
-        yield evaluation
+        when Proc
+          selector
+
+        else 
+          raise ArgumentError, 'bad selector type'
+
       end
     end
+  end
 
+  if defined?(Admission::Rails)
+    class ActionHelper
+
+      attr_reader :context, :controller
+      attr_accessor :action, :params
+
+      def initialize context, controller
+        @context = context
+        @controller = controller.new
+        @params = {}
+        helper = self
+
+        mock(:action_name){ helper.action.to_s }
+        mock(:params){ helper.params }
+        
+        mock :request_admission! do |_, scope|
+          helper.instance_variable_set '@result_scope', scope
+        end
+      end
+
+      def self.mock controller, context=nil, &imediate_call
+        mock = -> (context_override=nil, &block) {
+          helper = Admission::Tests::ActionHelper.new(
+            (context_override || context),
+            controller
+          )
+          block.call helper
+        }
+        mock.(&imediate_call) if imediate_call
+        mock
+      end
+
+      def result
+        validate_action!
+        
+        @result_scope = nil
+        controller.send :assure_admission
+        @result_scope
+      end
+
+      def call action=nil, params=nil
+        self.action = action if action
+        self.params = params if params
+        result
+      end
+
+      private
+
+      def mock method, &block
+        controller.define_singleton_method method, &block
+      end
+
+      def validate_action!
+        raise ArgumentError, "action must be set" if action.nil?
+        unless controller.respond_to? action
+          raise ArgumentError, "no such action #{controller.class.name}##{action}" 
+        end
+      end
+
+    end
   end
 
 end
