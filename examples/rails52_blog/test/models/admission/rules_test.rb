@@ -21,7 +21,6 @@ class Admission::RulesTest < ActiveSupport::TestCase
   end
 
   test 'edit, update -> articles' do
-    status = user_status 
     %i[edit update].each do |request|
 
       admission_rule request do |rule|
@@ -42,11 +41,11 @@ class Admission::RulesTest < ActiveSupport::TestCase
     end
   end
 
-  test 'create -> messages' do
-    assert_admission_rule user_status, :create, Message.new, PRIVILEGES
+  test 'create_message -> articles:messages' do
+    assert_admission_rule user_status, :create_message, [Article.new, :messages], PRIVILEGES
   end
 
-  test 'all -> users' do
+  test 'new, create, edit, update -> users' do
     status = user_status 
     admin, others = PRIVILEGES.partition 'admin'
 

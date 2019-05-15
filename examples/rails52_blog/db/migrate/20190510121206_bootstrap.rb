@@ -14,6 +14,7 @@ class Bootstrap < ActiveRecord::Migration[5.2]
 
     create_table :messages do |t|
       t.references :article
+      t.references :user
       t.text :body
     end
 

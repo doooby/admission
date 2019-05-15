@@ -4,7 +4,7 @@ module Admission
 
       ALL_ACTIONS = '^'.freeze
 
-      attr_reader :controller, :before_helpers, :resolvers
+      attr_reader :controller, :before_actions, :resolvers
 
       def initialize controller
         @controller = controller
@@ -100,23 +100,23 @@ module Admission
       # Adds a callback that is applied before mandatory admission request
       # can be filter per actions using options `only` and `except`
       #
-      #   action_admission.before_helper :helper_method, only: :some_action
-      #   action_admission.before_helper ->{ do_something }, only: [:some_action]
-      #   action_admission.before_helper(except: %i[this and_this]){ do_something }
+      #   action_admission.before_action :action_method, only: :some_action
+      #   action_admission.before_action ->{ do_something }, only: [:some_action]
+      #   action_admission.before_action(except: %i[this and_this]){ do_something }
       #
-      def before_helper helper=nil, only: nil, except: nil, &block_helper
+      def before_action action=nil, only: nil, except: nil, &block_action
         only = [*only].flatten.compact
         only = nil if only.empty?
         except = [*except].flatten.compact
         except = nil if except.empty?
-        (@before_helpers ||= []).push(
-            BeforeHelper.new (block_helper || helper), only, except
+        (@before_actions ||= []).push(
+            BeforeAction.new (block_action || action), only, except
         )
       end
 
       # this is the run-time means to resolve admission:
       # - it finds the scope for given action
-      # - it applies all before helpers
+      # - it applies all before actions
       # - it request admission per action and scope
       def invoke! controller_instance
         action = controller_instance.action_name
@@ -125,8 +125,12 @@ module Admission
         scope_resolver.apply controller_instance do |scope|
           action = action.to_sym
 
-          before_helpers && before_helpers.each do |helper|
-            helper.apply controller_instance if helper.applicable? action
+          if before_actions
+            before_actions.each do |before|
+              before.apply controller_instance if before.applicable? action
+            end
+
+            next if controller_instance.performed?
           end
 
           controller_instance.send :request_admission!, action, scope
@@ -155,11 +159,11 @@ module Admission
 
     end
 
-    class BeforeHelper
+    class BeforeAction
 
-      def initialize helper, only, except
-        @helper = case helper
-          when Proc, Symbol then helper
+      def initialize action, only, except
+        @action = case action
+          when Proc, Symbol then action
           else raise 'bad usage - give either callable or symbol for method name'
         end
 
@@ -173,11 +177,11 @@ module Admission
       end
 
       def apply controller
-        case @helper
+        case @action
           when Proc
-            controller.instance_exec &@helper
+            controller.instance_exec &@action
           when Symbol
-            controller.send @helper
+            controller.send @action
         end
       end
 

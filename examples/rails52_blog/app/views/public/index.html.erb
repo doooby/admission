@@ -8,7 +8,7 @@
 
 <br/>
 
-<%= link_to 'new article', new_article_path if current_user.status.can? :new, :articles %>
+<%= link_to 'new article', new_article_path if current_user&.can? :new, :articles %>
 
 <h3>Users</h3>
 <small>(Here you can select a user to log-in, or logout <%= link_to 'here', '/logout', 'data-method': 'post' %>.)</small>
@@ -34,4 +34,4 @@
 
 <br/>
 
-<%= link_to 'new user', new_user_path if current_user.status.can? :new, :users %>
+<%= link_to 'new user', new_user_path if current_user&.can? :new, :users %>

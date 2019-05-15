@@ -1,16 +1,20 @@
 messageA2_1:
   article: :articleA2
+  user: :user1
   body: Eius omnis molestias consequatur.
 
 messageA2_2:
   article: :articleA2
+  user: :user1
   body: Est dolore est voluptas.
 
 messageA2_3:
   article: :articleA2
+  user: :authorA
   body: Recusandae dolor vero quidem.
 
 messageA2_4:
   article: :articleA2
+  user: :user1
   body: Quas qui inventore recusandae.
   

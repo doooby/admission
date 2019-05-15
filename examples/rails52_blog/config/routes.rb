@@ -7,7 +7,11 @@ Rails.application.routes.draw do
     post :logout
   end
   
-  resources :articles, except: %i[index]
+  resources :articles, except: %i[index] do
+    member do
+      post :create_message
+    end
+  end
   resources :users, except: %i[index show] 
 
 end

@@ -173,15 +173,16 @@ module Admission::Tests
       attr_reader :context, :controller
       attr_accessor :action, :params
 
-      def initialize context, controller
+      def initialize context, controller_class
         @context = context
-        @controller = controller.new
+        @controller = controller_class.new
+
         @params = {}
         helper = self
 
         mock(:action_name){ helper.action.to_s }
         mock(:params){ helper.params }
-        
+
         mock :request_admission! do |_, scope|
           helper.instance_variable_set '@result_scope', scope
         end
@@ -193,7 +194,10 @@ module Admission::Tests
             (context_override || context),
             controller
           )
-          block.call helper
+
+          ActionHelper.without_before_actions controller do
+            block.call helper
+          end
         }
         mock.(&imediate_call) if imediate_call
         mock
@@ -213,11 +217,22 @@ module Admission::Tests
         result
       end
 
-      private
-
       def mock method, &block
         controller.define_singleton_method method, &block
       end
+
+      def self.without_before_actions controller
+        admission = controller.action_admission
+        memo = admission.before_actions
+        admission.instance_variable_set '@before_actions', nil
+        yield
+
+      ensure
+        admission.instance_variable_set '@before_actions', memo
+
+      end
+
+      private
 
       def validate_action!
         raise ArgumentError, "action must be set" if action.nil?

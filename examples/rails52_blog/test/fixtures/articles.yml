@@ -1,19 +1,19 @@
 articleA1:
   author: :authorA
   title: There was never a genius without a tincture of madness
-  body: <%= Faker::Lorem.paragraphs 4 %>
+  body: <%= Faker::Lorem.paragraphs(8).join ';' %>
 
 articleA2:
   author: :authorA
   title: Love is composed of a single soul inhabiting two bodies
-  body: <%= Faker::Lorem.paragraphs 4 %>
+  body: <%= Faker::Lorem.paragraphs(8).join ';' %>
 
 articleA3:
   author: authorA
   title: Know how to listen, and you will profit even from those who talk badly
-  body: <%= Faker::Lorem.paragraphs 4 %>
+  body: <%= Faker::Lorem.paragraphs(8).join ';' %>
 
 articleB1:
   author: authorB
   title: Rhetoric is the art of ruling the minds of men
-  body: <%= Faker::Lorem.paragraphs 4 %>
+  body: <%= Faker::Lorem.paragraphs(8).join ';' %>

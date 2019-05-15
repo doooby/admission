@@ -1,0 +1,29 @@
+<h3><%= @article.title %></h3>
+
+<% @article.body.split ';' do |paragraph| %>
+  <p><%= paragraph %></p>
+<% end %>
+
+<%= link_to 'edit', edit_article_path(@article) if current_user.can? :edit, @article %>
+
+<h3>Messages</h3>
+
+<% @article.messages.includes(:user).each do |message| %>
+  <p>
+    <strong>From <%= message.user.name %>:</strong>
+    <%= message.body %>
+  </p>
+<% end %>
+
+<% if current_user.can? :create_message, [@article, :messages] %>
+  <p>
+    <%= form_tag create_message_article_path(@article) do %>
+      <%= text_area_tag :body, nil, size: '80x1' %>
+      <%= submit_tag 'Post' %>
+    <% end %>
+  </p>
+<% end %>
+
+<br/>
+<br/>
+<%= link_to 'go back', root_path %>

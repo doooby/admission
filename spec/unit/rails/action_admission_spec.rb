@@ -139,7 +139,7 @@ RSpec.describe Admission::Rails::ActionAdmission do
 
   describe '#skip' do
 
-    it 'uses vois resolver' do
+    it 'uses void resolver' do
       instance.skip :a1
       expect(instance.resolvers).to eq('a1' => Admission::Rails::ScopeResolver.void)
     end
@@ -151,40 +151,40 @@ RSpec.describe Admission::Rails::ActionAdmission do
 
   end
 
-  describe '#before_helper' do
+  describe '#before_action' do
 
     it 'sets correct filters' do
-      instance.before_helper ->{}, only: :action1
-      expect(instance.before_helpers.last.applicable? :action1).to eq(true)
+      instance.before_action ->{}, only: :action1
+      expect(instance.before_actions.last.applicable? :action1).to eq(true)
 
-      instance.before_helper ->{}, only: :action1
-      expect(instance.before_helpers.last.applicable? :action2).to eq(false)
+      instance.before_action ->{}, only: :action1
+      expect(instance.before_actions.last.applicable? :action2).to eq(false)
 
-      instance.before_helper ->{}, only: %i[action1]
-      expect(instance.before_helpers.last.applicable? :action1).to eq(true)
+      instance.before_action ->{}, only: %i[action1]
+      expect(instance.before_actions.last.applicable? :action1).to eq(true)
 
-      instance.before_helper ->{}, except: :action1
-      expect(instance.before_helpers.last.applicable? :action1).to eq(false)
+      instance.before_action ->{}, except: :action1
+      expect(instance.before_actions.last.applicable? :action1).to eq(false)
 
-      instance.before_helper ->{}, except: %i[action1]
-      expect(instance.before_helpers.last.applicable? :action2).to eq(true)
+      instance.before_action ->{}, except: %i[action1]
+      expect(instance.before_actions.last.applicable? :action2).to eq(true)
     end
 
-    it 'sets correct helper' do
+    it 'sets correct before_action' do
       dummy = double 'controller_with_m1'
       expect(dummy).to receive(:some_method1)
-      instance.before_helper ->{ send :some_method1 }
-      instance.before_helpers.last.apply dummy
+      instance.before_action ->{ send :some_method1 }
+      instance.before_actions.last.apply dummy
 
       dummy = double 'controller_with_m2'
       expect(dummy).to receive(:some_method2)
-      instance.before_helper &(->{ send :some_method2 })
-      instance.before_helpers.last.apply dummy
+      instance.before_action &(->{ send :some_method2 })
+      instance.before_actions.last.apply dummy
 
       dummy = double 'controller_with_m3'
       expect(dummy).to receive(:some_method3)
-      instance.before_helper :some_method3
-      instance.before_helpers.last.apply dummy
+      instance.before_action :some_method3
+      instance.before_actions.last.apply dummy
     end
 
   end
@@ -220,16 +220,31 @@ RSpec.describe Admission::Rails::ActionAdmission do
       instance.invoke! controller
     end
 
-    it 'applies before filters' do
+    it 'applies only particular before_actions' do
       controller = double 'controller'
       allow(controller).to receive(:controller_name).and_return('app')
-      allow(controller).to receive(:action_name).and_return('a1')
-      allow(controller).to receive(:request_admission!)
+      allow(controller).to receive(:action_name).and_return('action')
+      allow(controller).to receive(:performed?).and_return(false)
 
-      instance.before_helper :before1
+      instance.before_action :before1
+      instance.before_action :before2, except: :action
+
       expect(controller).to receive(:before1)
-      instance.before_helper :before2, except: :a1
-      expect(controller).not_to receive(:before1)
+      expect(controller).not_to receive(:before2)
+      expect(controller).to receive(:request_admission!)
+      instance.invoke! controller
+    end
+
+    it 'skip admission if performed in before filter' do
+      controller = double 'controller'
+      allow(controller).to receive(:controller_name).and_return('app')
+      allow(controller).to receive(:action_name).and_return('action')
+      allow(controller).to receive(:performed?).and_return(true)
+
+      instance.before_action :before1
+
+      expect(controller).to receive(:before1)
+      expect(controller).not_to receive(:request_admission!)
       instance.invoke! controller
     end
 

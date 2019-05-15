@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
 
+  action_admission.before_action :enforce_user_presence
   action_admission.resource_for :edit, :update
 
   def new

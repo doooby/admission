@@ -43,7 +43,7 @@ class UserStatus < Admission::Status
         allow Article, :show
         
         # can post message to any article
-        allow Message, :create
+        allow [Article, :messages], :create_message
         
       end
       

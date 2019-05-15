@@ -5,6 +5,7 @@ class User < ApplicationRecord
   def status
     @status ||= UserStatus.for_user(self)
   end
+  delegate :can?, to: :status
 
   def privilege_text
     UserStatus::PRIVILEGE_HUMAN_NAMES[status.privileges&.first&.name]

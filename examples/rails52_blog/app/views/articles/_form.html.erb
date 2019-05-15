@@ -1,0 +1,13 @@
+<%= form_for @article do |f| %>
+
+  <label>Title:</label>
+  <%= text_field_tag :title, @article.title %>
+  <br/>
+
+  <label>Body:</label>
+  <%= text_area_tag :body, @article.body&.gsub(';', "\n"), size: '120x20' %>
+  <br/>
+
+  <%= f.submit 'Save' %>
+
+<% end %>

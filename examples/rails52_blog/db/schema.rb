@@ -21,8 +21,10 @@ ActiveRecord::Schema.define(version: 2019_05_10_121206) do
 
   create_table "messages", force: :cascade do |t|
     t.integer "article_id"
+    t.integer "user_id"
     t.text "body"
     t.index ["article_id"], name: "index_messages_on_article_id"
+    t.index ["user_id"], name: "index_messages_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
