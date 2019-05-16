@@ -35,3 +35,4 @@ Gemfile.lock
 ## Specific for InteliJ:
 /.idea
 *.iml
+.rakeTasks

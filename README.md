@@ -259,18 +259,13 @@ current_user.status.request! :show, [@owner, :cars]
 ```
 
 ### to-do list
-- [x] basic readme guide
 - [ ] docs
 - [ ] reuse arbitration instance (maybe unnecessary, deduce from benchmarks)
-- [x] Admission::Denied must be able to tell the requested action and scope
-- [x] minitest helpers
 - [ ] rspec helpers
 - [ ] test guides
 - [ ] tests for tests helpers
 - [ ] rails example
 - [ ] admission denied exemplary page (inspired by rails 4O4 & 500 page)
 - [ ] some rake helpers to print all scopes & actions
-- [x] some helper to avoid the weirdness of skipping & re-attaching the callback for nested resources
 - [ ] `@resource_arbiter` instance variable - check for valid reuse of a Proc
 - [ ] docs - explain logging, especialy for rails addon
-- [ ] rails addon: on_denied_action (for Articles#create_message in blog example)

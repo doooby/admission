@@ -1,0 +1,247 @@
+<div id="main"></div>
+
+<template id="new_user">
+  <fieldset>
+    <div>
+      <label>
+        <input type="radio" name="user_type" value="anonymous" checked/>
+        Anonymous
+      </label>
+    </div>
+    <div>
+      <label>
+        <input type="radio" name="user_type" value="with_name"/>
+        Name:
+      </label>
+      <input type="text" name="user_name"/>
+    </div>
+    <div>
+      <button type="button" data-enter>Enter</button>
+    </div>
+    <br/>
+    <br/>
+    <small>
+      Anonymous cannot give karma until they have some. <br/>
+      Users with name can brag about karma once they have at least 5.
+    </small>
+  </fieldset>
+</template>
+
+<template id="chat">
+  <fieldset>
+    <legend></legend>
+    <div>
+      <span data-karma>0</span>
+      <button type="button" data-brag>Brag About It</button>
+    </div>
+    <hr/>
+
+    <div data-notice></div>
+
+    <div data-listing></div>
+
+    <input type="text" data-message placeholder="write something"/>
+    <button type="button" data-post>Post</button>
+
+  </fieldset>
+</template>
+
+<template id="message">
+  <div class="message">
+    <strong data-caption></strong>
+    <span data-body></span>
+    <small class="karma">[give karma]</small>
+  </div>
+</template>
+
+<script>
+    'use strict';
+
+    (function () {
+        const MAIN = document.getElementById('main');
+
+        function renderTemplate (template_name, ...args) {
+            const template = document.getElementById(template_name);
+            // const fragment = template.content.cloneNode(true);
+            // const root = Array.from(fragment.childNodes).find(node => node.tagName);
+            const root = Array.from(template.content.childNodes).find(node => node.tagName);
+            const root_clone = root.cloneNode(true);
+
+            const init = templates[template_name];
+            if (init) init(root_clone, ...args);
+
+            return root_clone;
+        }
+
+        function addFieldset (tempalate, ...args) {
+            const fragment = renderTemplate(tempalate, ...args);
+            MAIN.appendChild(fragment);
+        }
+
+        const templates = {
+
+            new_user (root) {
+                // on name change select the name option
+                root.querySelector('[name=user_name]').addEventListener('change', e => {
+                    if (e.target.value) {
+                        root.querySelector('[name=user_type][value=with_name]').checked = true;
+                    }
+                });
+
+                // clear invalidity on change
+                root.querySelector('[name=user_type][value=anonymous]').addEventListener('change', () => {
+                    root.querySelector('[name=user_name]').setCustomValidity('');
+                });
+
+                // enter action
+                root.querySelector('[data-enter]').addEventListener('click', () => {
+                    const type = root.querySelector('[name=user_type]:checked').value;
+                    const name_field = root.querySelector('[name=user_name]');
+                    const name = name_field.value.trim();
+
+                    if (type === 'with_name' && name.length === 0) {
+                        name_field.setCustomValidity('cannot be empty');
+
+                    } else {
+                        User.openChat(
+                            {type, name},
+                            user => {
+                                root.remove();
+                                addFieldset('chat', user);
+                                addFieldset('new_user');
+                            }
+                        );
+
+                    }
+                });
+            },
+
+            chat (root, user) {
+                // render user
+                root.querySelector('legend').textContent = user.name;
+                // attach root to user
+                user.chat = root;
+
+                // send message on enter
+                function postMessage (input) {
+                    const message = input.value;
+                    input.value = '';
+                    user.wsSend('post_message', {body: message});
+                }
+                root.querySelector('[data-message]').addEventListener('keyup', e => {
+                    if (e.key === 'Enter') { postMessage(e.target); }
+                });
+                root.querySelector('[data-post]').addEventListener('click', () => {
+                    postMessage(root.querySelector('[data-message]'));
+                });
+
+                // brag about karma
+                root.querySelector('[data-brag]').addEventListener('click', () => {
+                    user.wsSend('brag');
+                });
+            },
+
+            message (root, {id, name, body}, user) {
+                // render message and author
+                root.querySelector('[data-caption]').textContent = `${name}:`;
+                root.querySelector('[data-body]').textContent = body;
+
+                // button to give karma
+                root.querySelector('.karma').addEventListener('click', e => {
+                    e.target.remove();
+                    user.wsSend('give_karma', {id});
+                });
+            }
+
+        };
+
+        class User {
+
+            constructor (id, name) {
+                this.id = id;
+                this.name = name;
+            }
+
+            static openChat (data, callback) {
+                fetch(
+                    '/open_chat',
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }
+                )
+                    .then(response => response.json())
+                    .then(({id, name}) => {
+                        const user = new User(id, name);
+                        user.connect();
+                        callback(user);
+                    })
+            }
+
+            msg_message (message_data) {
+                const message = renderTemplate('message', message_data, this);
+                const listing = this.chat.querySelector('[data-listing');
+                listing.appendChild(message);
+
+                // cap messages count
+                if (listing.childNodes.length >= 10) {
+                    listing.childNodes[0].remove();
+                }
+            }
+
+            msg_karma ({karma}) {
+                this.chat.querySelector('[data-karma]').textContent = `Karma: ${karma}`;
+            }
+
+            msg_denied ({body}) {
+                const wrap = document.createElement('div');
+                wrap.className = 'notice';
+                wrap.textContent = body;
+                this.chat.querySelector('[data-notice').appendChild(wrap);
+                setTimeout(() => { wrap.remove() }, 3000);
+            }
+
+            connect () {
+                this.ws = new WebSocket(`ws://${location.host}/connect?user_id=${this.id}`);
+
+                this.ws.onmessage = e => {
+                    const data = JSON.parse(e.data);
+                    const handler = this[`msg_${data.msg}`];
+                    if (handler) handler.call(this, data);
+                };
+            }
+
+            wsSend (msg, data={}) {
+                data['msg'] = msg;
+                this.ws.send(JSON.stringify(data));
+            }
+
+        }
+
+        addFieldset('new_user');
+    }());
+</script>
+
+
+<style>
+  #main {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  #main > fieldset {
+    flex-basis: 500px;
+  }
+
+  #main .message .karma {
+    color: gray;
+    cursor: pointer;
+  }
+  #main .message .karma:hover {
+    text-decoration: underline;
+  }
+  #main .notice {
+    border: 1px dotted;
+    margin-bottom: 4px;
+  }
+</style>
