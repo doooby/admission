@@ -8,7 +8,7 @@
 
   <% if attributes.include? :privilege %>
     <label>Privilege:</label>
-    <%= f.select :privilege, options_for_select(UserStatus::PRIVILEGE_HUMAN_NAMES.to_a.map(&:reverse), @user.privilege) %>
+    <%= f.select :privilege, options_for_select(PRIVILEGE_HUMAN_NAMES.to_a.map(&:reverse), @user.privilege) %>
     <br/>
   <% end %>
 

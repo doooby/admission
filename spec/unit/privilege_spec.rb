@@ -99,14 +99,14 @@ RSpec.describe Admission::Privilege do
 
     it 'prints name and level' do
       expect(privilege).to receive(:text_key).and_call_original
-      expect(privilege.inspect).to eq('#<Privilege key=man>')
+      expect(privilege.inspect).to eq('#<Privilege key=man >')
     end
 
     it 'prints inheritance' do
       privilege_superman.inherits_from privilege
       expect(privilege).to receive(:text_key).and_call_original
       expect(privilege_superman.inspect).to eq(
-          '#<Privilege key=superman inherited=[man]>'
+          '#<Privilege key=superman inherited=[man] >'
       )
     end
 
@@ -116,13 +116,13 @@ RSpec.describe Admission::Privilege do
 
     it 'prints name and level' do
       expect(privilege).to receive(:text_key).and_call_original
-      expect(privilege.to_s).to eq('privilege man')
+      expect(privilege.to_s).to eq('man')
     end
 
     it 'prints inheritance' do
       privilege2 = new_privilege('mans', 'not').dup_with_context 'hot'
       expect(privilege2).to receive(:text_key).and_call_original
-      expect(privilege2.to_s).to eq('privilege mans-not, context hot')
+      expect(privilege2.to_s).to eq('mans-not[hot]')
     end
 
   end

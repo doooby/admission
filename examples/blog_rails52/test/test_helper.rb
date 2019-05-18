@@ -10,4 +10,4 @@ class ActiveSupport::TestCase
 end
 
 require 'admission/tests/minitest'
-Admission::Tests.order = UserStatus.privileges
+Admission::Tests.order = User.privileges

@@ -67,11 +67,11 @@ class Admission::ResourceArbitration < Admission::Arbitration
     args = if proc.instance_variable_get :@resource_arbiter
       case proc.arity
         when 1 then [@resource]
-        when 2 then [@resource, @context]
+        when -1, 2 then [@resource, @context]
       end
     else
       case proc.arity
-        when 1 then [@context]
+        when -1, 1 then [@context]
         when 0 then []
       end
     end

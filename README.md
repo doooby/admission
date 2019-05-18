@@ -268,4 +268,6 @@ current_user.status.request! :show, [@owner, :cars]
 - [ ] admission denied exemplary page (inspired by rails 4O4 & 500 page)
 - [ ] some rake helpers to print all scopes & actions
 - [ ] `@resource_arbiter` instance variable - check for valid reuse of a Proc
+      and also test the arity (-1 = *args)
+      'passes nil as argument if resource-arbiter accessed by name-scope' this shouldn't be a thing, validate the resource-rule
 - [ ] docs - explain logging, especialy for rails addon

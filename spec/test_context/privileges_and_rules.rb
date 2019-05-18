@@ -82,7 +82,7 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
   privilege :vassal do
 
-    allow_resource Person, :show do |person, *|
+    allow_resource Person, :show do |person, _|
       raise 'person is nil' unless person
       self == person
     end
@@ -95,7 +95,8 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
 
   privilege :vassal, :lord do
 
-    allow_resource(Person, :show){ true }
+    # this is weird but still must be valid
+    allow_resource(Person, :show){|*_| true }
 
     allow_resource Person, %i[index update] do |person, country|
       allowance = countries.include? country
