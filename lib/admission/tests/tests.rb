@@ -3,6 +3,7 @@ module Admission::Tests
   class << self
 
     attr_accessor :order
+    attr_accessor :default_status
     
     attr_writer :all_privileges
     def all_privileges
@@ -36,6 +37,17 @@ module Admission::Tests
       }
   
       [privilege].flatten.compact.to_a.each(&fn)
+    end
+
+    def build_default_status
+      case @default_status
+        when nil
+          raise 'to use implicit status, set Admission::Tests.default_status='
+        when Proc
+          @default_status.()
+        else
+          @default_status
+      end
     end
 
   end
@@ -92,7 +104,10 @@ module Admission::Tests
     private
   
     def arbitration
-      @arbitration ||= status.instantiate_arbitration(request, scope)
+      @arbitration ||= begin
+        self.status = Admission::Tests.build_default_status unless status
+        status.instantiate_arbitration request, scope
+      end
     end
 
     def rule_per_privilege privilege

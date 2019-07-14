@@ -44,7 +44,7 @@ class Admission::ScopesTest < ActiveSupport::TestCase
   test 'users#new' do
     admission_action_mock UsersController do |action|
       action.action = :new
-      action.assert :users
+      action.assert_scope :users
     end
   end
 
@@ -59,7 +59,7 @@ class Admission::ScopesTest < ActiveSupport::TestCase
       user = users :user1
       action.action = :edit
       action.params = {id: user.id}
-      action.assert user
+      action.assert_scope user
     end
   end
 

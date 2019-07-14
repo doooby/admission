@@ -2,13 +2,13 @@ require_relative './tests'
 
 Minitest::Assertions.module_exec do
 
-  def assert_admission_rule status, request, scope, privileges
+  def assert_admission_rule request, scope, privileges, status=Admission::Tests.build_default_status
     Admission::Tests.process_rule status, privileges, request, scope do |result, privilege, arbitration|
       assert result, ->{ Admission::Tests.fail_message arbitration.case_to_s, [privilege], nil }
     end
   end
 
-  def refute_admission_rule status, request, scope, privileges
+  def refute_admission_rule request, scope, privileges, status=Admission::Tests.build_default_status
     Admission::Tests.process_rule status, privileges, request, scope do |result, privilege, arbitration|
       refute result, ->{ Admission::Tests.fail_message arbitration.case_to_s, nil, [privilege] }
     end
@@ -44,7 +44,7 @@ if defined?(Admission::Tests::ActionHelper)
   end
 
   Admission::Tests::ActionHelper.class_exec do 
-    def assert scope
+    def assert_scope scope
       @context.assertions += 1
       @context.assert_equal scope, result
     end

@@ -11,3 +11,4 @@ end
 
 require 'admission/tests/minitest'
 Admission::Tests.order = User.privileges
+Admission::Tests.default_status = ->{ User.new.status }

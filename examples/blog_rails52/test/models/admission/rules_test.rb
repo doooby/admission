@@ -4,19 +4,14 @@ class Admission::RulesTest < ActiveSupport::TestCase
 
   PRIVILEGES = Admission::Tests.all_privileges
 
-  def user_status
-    User.new.status
-  end
-
   test 'show -> articles' do
-    assert_admission_rule user_status, :show, :articles, PRIVILEGES
+    assert_admission_rule :show, :articles, PRIVILEGES
   end
 
   test 'new, create -> articles' do
-    status = user_status 
     %i[new create].each do |request|
-      assert_admission_rule status, request, :articles, PRIVILEGES.select('author')
-      refute_admission_rule status, request, :articles, PRIVILEGES.reject('author')
+      assert_admission_rule request, :articles, PRIVILEGES.select('author')
+      refute_admission_rule request, :articles, PRIVILEGES.reject('author')
     end
   end
 
@@ -42,16 +37,15 @@ class Admission::RulesTest < ActiveSupport::TestCase
   end
 
   test 'create_message -> articles:messages' do
-    assert_admission_rule user_status, :create_message, [Article.new, :messages], PRIVILEGES
+    assert_admission_rule :create_message, [Article.new, :messages], PRIVILEGES
   end
 
   test 'new, create, edit, update -> users' do
-    status = user_status 
     admin, others = PRIVILEGES.partition 'admin'
 
     %i[new create edit update].each do |request|
-      assert_admission_rule status, request, :users, admin
-      refute_admission_rule status, request, :users, others
+      assert_admission_rule request, :users, admin
+      refute_admission_rule request, :users, others
     end
   end
 

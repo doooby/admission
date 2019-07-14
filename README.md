@@ -260,7 +260,6 @@ current_user.status.request! :show, [@owner, :cars]
 
 ### to-do list
 - [ ] docs
-- [ ] reuse arbitration instance (maybe unnecessary, deduce from benchmarks)
 - [ ] rspec helpers
 - [ ] test guides
 - [ ] tests for tests helpers
