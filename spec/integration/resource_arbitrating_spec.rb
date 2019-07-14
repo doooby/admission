@@ -269,6 +269,15 @@ RSpec.describe 'resources_arbitrating' do
           rule [person, :possessions], :update,
               privilege(:vassal, :lord, context: :taiwan)
       ).to eql(false)
+
+      # in other way, test rule method
+      expect(person).to receive(:allow_possession_change?).
+              with(person, :taiwan).
+              and_return(true)
+      expect(
+          rule [person, :possessions], :update,
+              privilege(:vassal, :lord, context: :taiwan)
+      ).to eql(true)
     end
 
   end

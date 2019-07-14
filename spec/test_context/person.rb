@@ -14,9 +14,6 @@ class Person
     @countries = countries
   end
 
-
-  # privileges per country
-
   def not_woman?
     @sex != FEMALE
   end
@@ -25,7 +22,8 @@ class Person
     self
   end
 
-  # def self.reduce_privileges **per_country
-  # end
+  def allow_possession_change? _, country
+    countries.include? country
+  end
 
 end

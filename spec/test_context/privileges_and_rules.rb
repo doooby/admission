@@ -111,9 +111,7 @@ RESOURCE_RULES = Admission::ResourceArbitration.define_rules PRIVILEGES_ORDER do
     end
 
     allow Admission::ResourceArbitration.nested_scope(Person, :possessions), :index
-    allow_resource [Person, :possessions], :update do |person, country|
-      person.countries.include?(country)
-    end
+    allow_resource [Person, :possessions], :update, rule: :allow_possession_change?
 
   end
 

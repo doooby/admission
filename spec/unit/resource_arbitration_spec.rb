@@ -38,17 +38,34 @@ RSpec.describe Admission::ResourceArbitration do
 
   end
 
-  # describe '#process_proc_decision' do
-  #
-  #   let(:arbitration){
-  #     arbitration = Admission::ResourceArbitration.new nil, {}, :req, :scope
-  #   }
-  #
-  #   it 'non-resource block ' do
-  #
-  #   end
-  #
-  # end
+  describe '#make_decision' do
+
+    let(:arbitration){
+      Admission::ResourceArbitration.new nil, {}, :req, :scope
+    }
+
+    it 'uses #process_proc_decision' do
+      decision = ->{}
+      expect(arbitration).to receive(:process_proc_decision).with(decision)
+      arbitration.make_decision(
+          {a: decision},
+          :a
+      )
+    end
+
+    it 'uses #process_method_decision' do
+      decision = :some_method
+      expect(arbitration).to receive(:process_method_decision).with(decision)
+      arbitration.instance_variable_set '@resource', 'res'
+      arbitration.make_decision(
+          {a: decision},
+          :a
+      )
+    end
+
+  end
+
+  describe '#process_method_decision'
 
   describe 'RulesBuilder' do
 

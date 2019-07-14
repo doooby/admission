@@ -5,4 +5,8 @@ class Article < ApplicationRecord
 
   validates_presence_of :author, :title, :body
 
+  def allow_changes? user, _
+    author == user
+  end
+
 end

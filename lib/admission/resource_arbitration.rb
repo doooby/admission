@@ -15,8 +15,13 @@ class Admission::ResourceArbitration < Admission::Arbitration
   def make_decision from_rules, privilege
     if from_rules
       decision = from_rules[privilege]
+
       if Proc === decision
         decision = process_proc_decision decision
+
+      elsif @resource && Symbol === decision && decision != :forbidden
+        decision = process_method_decision decision
+
       end
 
       unless Admission::VALID_DECISION.include? decision
@@ -56,10 +61,10 @@ class Admission::ResourceArbitration < Admission::Arbitration
   end
 
   def self.resource_to_s resource
-    resource = if resource.respond_to? :id
+    if resource.respond_to? :id
       "#{resource.class.name}[#{resource.id || 'new'}]"
     else
-      resource
+      resource.to_s
     end
   end
 
@@ -70,6 +75,14 @@ class Admission::ResourceArbitration < Admission::Arbitration
       @person.instance_exec @resource, @context, &proc
     else
       @person.instance_exec @context, &proc
+    end
+  end
+
+  def process_method_decision method
+    if @resource.respond_to? method
+      @resource.send method, @person, @context
+    else
+      false
     end
   end
 
@@ -94,11 +107,21 @@ class Admission::ResourceArbitration < Admission::Arbitration
           scope: normalize_scope(scope)
     end
 
-    def allow_resource resource, *actions, &block
+    def allow_resource resource, *actions, rule:nil, &block
       validate_action_names! actions
-      raise "block not given" unless block
-      mark_resource_arbiter! block, true
-      add_allowance_rule actions.flatten, block,
+      if block
+        mark_resource_arbiter! block, true
+        rule = block
+
+      elsif Symbol === rule
+        raise 'rule cannot be `:forbidden`' if rule === :forbidden
+
+      else
+        raise 'pass either symbol as a rule or block'
+
+      end
+
+      add_allowance_rule actions.flatten, rule,
           scope: normalize_scope(resource)
     end
 

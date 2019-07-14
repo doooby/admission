@@ -73,10 +73,7 @@ class User < ApplicationRecord
         allow Article, :new, :create
 
         # can modify own articles
-        allow_resource Article, :edit, :update do |article|
-          # self here is the user
-          article.author == self
-        end
+        allow_resource Article, :edit, :update, rule: :allow_changes?
 
       end
 
