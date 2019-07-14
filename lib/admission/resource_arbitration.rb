@@ -1,5 +1,7 @@
 class Admission::ResourceArbitration < Admission::Arbitration
 
+  RESOURCE_BLOCK_MARK = '@resource_arbiter'.freeze
+
   attr_reader :scope, :resource
 
   def initialize person, rules_index, request, scope_or_resource
@@ -55,41 +57,33 @@ class Admission::ResourceArbitration < Admission::Arbitration
 
   def self.resource_to_s resource
     resource = if resource.respond_to? :id
-        "#{resource.class.name}[#{resource.id || 'new'}]"
-      else
-        resource
+      "#{resource.class.name}[#{resource.id || 'new'}]"
+    else
+      resource
     end
   end
 
-  private 
+  private
 
   def process_proc_decision proc
-    args = if proc.instance_variable_get :@resource_arbiter
-      case proc.arity
-        when 1 then [@resource]
-        when -1, 2 then [@resource, @context]
-      end
+    if proc.instance_variable_get RESOURCE_BLOCK_MARK
+      @person.instance_exec @resource, @context, &proc
     else
-      case proc.arity
-        when -1, 1 then [@context]
-        when 0 then []
-      end
+      @person.instance_exec @context, &proc
     end
-
-    raise "bad arguments count for rule at #{proc.source_location}" unless args
-
-    @person.instance_exec *args, &proc
   end
 
   class RulesBuilder < Admission::Arbitration::RulesBuilder
 
     def allow scope, *actions, &block
       validate_action_names! actions
+      mark_resource_arbiter! block, false if block
       add_allowance_rule actions.flatten, (block || true),
           scope: normalize_scope(scope)
     end
 
     def allow_all scope, &block
+      mark_resource_arbiter! block, false if block
       add_allowance_rule [Admission::ALL_ACTION], (block || true),
           scope: normalize_scope(scope)
     end
@@ -103,7 +97,7 @@ class Admission::ResourceArbitration < Admission::Arbitration
     def allow_resource resource, *actions, &block
       validate_action_names! actions
       raise "block not given" unless block
-      block.instance_variable_set :@resource_arbiter, true
+      mark_resource_arbiter! block, true
       add_allowance_rule actions.flatten, block,
           scope: normalize_scope(resource)
     end
@@ -141,6 +135,24 @@ class Admission::ResourceArbitration < Admission::Arbitration
         when Class then Admission::ResourceArbitration.type_to_scope(scope)
         else raise 'invalid scope'
       end
+    end
+
+    def mark_resource_arbiter! block, as_resource
+      is_resource = block.instance_variable_get RESOURCE_BLOCK_MARK
+
+      if as_resource
+        if is_resource.eql? false
+          raise 'Bad reuse of block rule: already non-resource arbiter'
+        end
+
+      else
+        if is_resource.eql? true
+          raise 'Bad reuse of block rule: already resource arbiter'
+        end
+
+      end
+
+      block.instance_variable_set RESOURCE_BLOCK_MARK, as_resource
     end
 
   end

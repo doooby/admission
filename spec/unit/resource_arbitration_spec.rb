@@ -38,6 +38,18 @@ RSpec.describe Admission::ResourceArbitration do
 
   end
 
+  # describe '#process_proc_decision' do
+  #
+  #   let(:arbitration){
+  #     arbitration = Admission::ResourceArbitration.new nil, {}, :req, :scope
+  #   }
+  #
+  #   it 'non-resource block ' do
+  #
+  #   end
+  #
+  # end
+
   describe 'RulesBuilder' do
 
     let(:builder){
@@ -110,6 +122,38 @@ RSpec.describe Admission::ResourceArbitration do
         test_normal_scopes do |scope|
           builder.allow_resource(scope, :act){}
         end
+      end
+
+    end
+
+    describe 'resource block marking' do
+
+      it 'non-res reuse' do
+        block = ->{}
+        expect{ builder.allow :scope, :read, &block }.not_to raise_exception
+        expect{ builder.allow :scope, :write, &block }.not_to raise_exception
+      end
+
+      it 'cannot reuse non-res as res' do
+        block = ->{}
+        expect{ builder.allow :scope, :read, &block }.not_to raise_exception
+        expect{ builder.allow_resource :books, :write, &block }.to(
+            raise_exception(/already non-resource arbiter$/)
+        )
+      end
+
+      it 'res reuse' do
+        block = ->{}
+        expect{ builder.allow_resource :books, :read, &block }.not_to raise_exception
+        expect{ builder.allow_resource :books, :write, &block }.not_to raise_exception
+      end
+
+      it 'cannot reuse res as non-res' do
+        block = ->{}
+        expect{ builder.allow_resource :books, :read, &block }.not_to raise_exception
+        expect{ builder.allow :scope, :write, &block }.to(
+            raise_exception(/already resource arbiter$/)
+        )
       end
 
     end
