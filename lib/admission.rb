@@ -7,6 +7,6 @@ require_relative 'admission/status'
 require_relative 'admission/arbitration'
 require_relative 'admission/resource_arbitration'
 
-require_relative 'admission/index'
+require_relative 'admission/attributes'
 
 require_relative 'admission/denied'

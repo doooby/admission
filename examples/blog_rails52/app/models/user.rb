@@ -15,11 +15,11 @@ class User < ApplicationRecord
   delegate :can?, to: :status
 
   def self.new_attributes
-    Admission::Index.new.add :name, :privilege
+    Admission::Attributes.build :name, :privilege
   end
   
   def self.edit_attributes
-    Admission::Index.new.add :privilege
+    Admission::Attributes.build :privilege
   end
 
   PRIVILEGE_HUMAN_NAMES = {

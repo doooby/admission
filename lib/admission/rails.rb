@@ -1,8 +1,4 @@
-module Admission::Rails
-
-
-
-end
+module Admission::Rails; end
 
 Admission::ResourceArbitration.class_exec do
 

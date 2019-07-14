@@ -14,7 +14,7 @@ Do not expect simple one liner to integrate this. You may want to refer to the r
 ## Is it any good?
 [yes](https://news.ycombinator.com/item?id=3067434)
 
-For real though, if you're here it's for a reason: you need some sort of mechanism that takes an user and an action and renders to either admission or denial. You **have to** do it on your own because of the complexity of the matter but this library is meant assist you. 
+For real though, if you're here it's for a reason: you need some sort of mechanism that takes an user and an action and renders to either admission or denial. And in a **testable** manner. You have to do it on your own because it's hard to abstract all the situations but this library is meant assist you. 
 
 ## Status 
 * will hit that v1.0 once all todos are done

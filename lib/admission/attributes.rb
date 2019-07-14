@@ -1,4 +1,4 @@
-class Admission::Index
+class Admission::Attributes
 
   attr_reader :items, :children
 
@@ -7,12 +7,16 @@ class Admission::Index
     @children = {}
   end
 
+  def self.build *items
+    new.add *items
+  end
+
   def add *add_items, **add_children
     @items |= add_items.flatten.map(&:to_sym)
 
-    add_children.each do |key, list|
-      child = @children[key] || Admission::Index.new
-      child.add *list
+    add_children.each do |key, items|
+      child = @children[key] || Admission::Attributes.new
+      child.add *items
       children[key] = child
     end
 

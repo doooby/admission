@@ -1,11 +1,11 @@
 require_relative '../spec_helper'
 
-RSpec.describe Admission::Index do
+RSpec.describe Admission::Attributes do
 
-  let(:index){ Admission::Index.new }
+  let(:index){ Admission::Attributes.new }
 
   def instance_with items=[], children={}
-    index = Admission::Index.new
+    index = Admission::Attributes.new
     index.instance_variable_set '@items', items
     index.instance_variable_set '@children', children
     index

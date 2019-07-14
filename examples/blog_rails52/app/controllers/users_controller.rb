@@ -8,7 +8,7 @@ class UsersController < ApplicationController
   end
 
   def create
-    @user = User.new user_params(User.new_attributes.to_list)
+    @user = User.new user_params(:new)
 
     if @user.save
       flash[:notice] = "User #{@user.name} was created."
@@ -25,7 +25,7 @@ class UsersController < ApplicationController
   end
 
   def update
-    if @user.update user_params(User.edit_attributes.to_list)
+    if @user.update user_params(:edit)
       flash[:notice] = "User #{@user.name} was updated."
       redirect_to root_path
 
@@ -42,8 +42,9 @@ class UsersController < ApplicationController
     @user = User.find params[:id]
   end
 
-  def user_params attrs
-    params.require(:user).permit attrs
+  def user_params action
+    attrs = User.send "#{action}_attributes"
+    params.require(:user).permit attrs.to_list
   end
 
 end
