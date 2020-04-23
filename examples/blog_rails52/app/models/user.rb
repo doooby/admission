@@ -55,7 +55,7 @@ class User < ApplicationRecord
   end
 
   def self.rules
-    @rules ||= Admission::ResourceArbitration.define_rules privileges do
+    @rules ||= Admission::ResourceArbitration.define_rules_for privileges do
 
       privilege :user do
 

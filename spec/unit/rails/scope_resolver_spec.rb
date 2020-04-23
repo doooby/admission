@@ -1,5 +1,3 @@
-require_relative '../../spec_helper'
-
 RSpec.describe Admission::Rails::ScopeResolver do
 
   it '.new freezes the instance' do

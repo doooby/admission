@@ -1,5 +1,3 @@
-require_relative '../spec_helper'
-
 RSpec.describe Admission::ResourceArbitration do
 
   describe '#new' do

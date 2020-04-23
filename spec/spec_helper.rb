@@ -1,8 +1,8 @@
-require_relative 'rspec_config'
+require 'rspec_config'
 
 require 'byebug'
 
-def with_bug
+def bug
   $bug = true
   yield
 ensure
@@ -24,5 +24,11 @@ SimpleCov.start do
 end
 
 require_relative '../lib/admission'
+
+class String
+  def tableize
+    "#{self.downcase}s"
+  end
+end
+
 require_relative '../lib/admission/rails'
-require_relative './test_context/index'

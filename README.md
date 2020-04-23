@@ -42,7 +42,7 @@ def self.privileges
 end
 
 def self.rules
-  @rules ||= Admission::ResourceArbitration.define_rules privileges do
+  @rules ||= Admission::ResourceArbitration.define_rules_for privileges do
     privilege :god do
       allow :users, :index
     end
@@ -270,3 +270,4 @@ current_user.status.request! :show, [@owner, :cars]
       and also test the arity (-1 = *args)
       'passes nil as argument if resource-arbiter accessed by name-scope' this shouldn't be a thing, validate the resource-rule
 - [ ] docs - explain logging, especialy for rails addon
+- [ ] Admission::Subject - customizable object, that is used to resolve admission to data - like particular region of user

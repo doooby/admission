@@ -1,5 +1,3 @@
-require_relative '../../spec_helper'
-
 RSpec.describe Admission::Rails::ActionAdmission do
 
   let(:instance){ Admission::Rails::ActionAdmission.new 'aaa' }

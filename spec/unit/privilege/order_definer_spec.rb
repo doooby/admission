@@ -1,5 +1,3 @@
-require_relative '../../spec_helper'
-
 RSpec.describe Admission::PrivilegesOrder::Definer do
 
   def define_privileges &block

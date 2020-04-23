@@ -1,12 +1,12 @@
-require_relative 'admission/admission'
-require_relative 'admission/version'
+require 'admission/admission'
+require 'admission/version'
 
-require_relative 'admission/privilege'
-require_relative 'admission/privileges_order'
-require_relative 'admission/status'
-require_relative 'admission/arbitration'
-require_relative 'admission/resource_arbitration'
+require 'admission/privilege'
+require 'admission/privileges_order'
+require 'admission/status'
+require 'admission/arbitration'
+require 'admission/resource_arbitration'
 
-require_relative 'admission/attributes'
+require 'admission/attributes'
 
-require_relative 'admission/denied'
+require 'admission/denied'

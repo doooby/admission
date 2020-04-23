@@ -1,17 +1,19 @@
-require_relative '../spec_helper'
+require_relative './feudalism'
 
 RSpec.describe 'actions_arbitrating' do
 
   def arbitration request, context=nil
-    person = Person.new 'person', Person::MALE, [:czech]
-    arbitration = Admission::Arbitration.new person, ACTIONS_RULES, request
+    person = Feudalism::Person.new 'person',
+        Feudalism::Person::MALE, [:czech]
+    arbitration = Admission::Arbitration.new person,
+        Feudalism::ACTIONS_RULES, request
     arbitration.prepare_sitting context
     arbitration
   end
 
   def privilege *args, context: nil
-    p = PRIVILEGES_ORDER.get *args
-    p = p.dup_with_context context if context
+    p = Feudalism::ORDER.get *args
+    p = p.dup_with_context context if  context
     p
   end
 
@@ -26,8 +28,10 @@ RSpec.describe 'actions_arbitrating' do
   end
 
   it 'disallows woman to do anything' do
-    person = Person.new 'person', Person::FEMALE, [:czech]
-    arbitration = Admission::Arbitration.new person, ACTIONS_RULES, :anything
+    person = Feudalism::Person.new 'person',
+        Feudalism::Person::FEMALE, [:czech]
+    arbitration = Admission::Arbitration.new person,
+        Feudalism::ACTIONS_RULES, :anything
     arbitration.prepare_sitting
     expect(
         arbitration.rule_per_privilege privilege(:human)
@@ -35,8 +39,10 @@ RSpec.describe 'actions_arbitrating' do
   end
 
   it 'allow woman-count to do anything in her country' do
-    person = Person.new 'person', Person::FEMALE, [:czech]
-    arbitration = Admission::Arbitration.new person, ACTIONS_RULES, :anything
+    person = Feudalism::Person.new 'person',
+        Feudalism::Person::FEMALE, [:czech]
+    arbitration = Admission::Arbitration.new person,
+        Feudalism::ACTIONS_RULES, :anything
     arbitration.prepare_sitting :czech
     expect(
         arbitration.rule_per_privilege privilege(:human, :count, context: :czech)

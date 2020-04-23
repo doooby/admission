@@ -1,31 +1,35 @@
-require_relative '../spec_helper'
+require_relative './feudalism'
 
 RSpec.describe 'resources_arbitrating' do
 
-  let(:person){ Person.new 'person', Person::MALE, [:czech] }
-  let(:female){ Person.new 'female', Person::FEMALE, [:czech] }
-
-  def arbitration scope, action, context=nil
-    arbitration = Admission::ResourceArbitration.new person, RESOURCE_RULES, action, scope
-    arbitration.prepare_sitting context
-    arbitration
-  end
+  let(:person){
+    Feudalism::Person.new 'person',
+        Feudalism::Person::MALE, [:czech]
+  }
+  let(:female){
+    Feudalism::Person.new 'female',
+        Feudalism::Person::FEMALE, [:czech]
+  }
+  before{ test_person person }
+  def test_person value; @person = value; end
 
   def privilege *args, context: nil
-    p = PRIVILEGES_ORDER.get *args
-    p = p.dup_with_context context if context
-    p
-  end
-
-  def actions_rule action, privilege
-    arbitration(:actions, action, privilege.context).rule_per_privilege privilege
+    Feudalism::ORDER.get(*args).
+        tap{|p| p.dup_with_context context if context }
   end
 
   def rule scope, action, privilege
-    arbitration(scope, action, privilege.context).rule_per_privilege privilege
+    arbitration = Admission::ResourceArbitration.new @person,
+        Feudalism::RESOURCES_RULES, action, scope
+    arbitration.prepare_sitting privilege.context
+    arbitration.rule_per_privilege privilege
   end
 
   describe 'actions scope' do
+
+    def actions_rule action, privilege
+      rule :actions, action, privilege
+    end
 
     it 'allows human to do anything' do
       expect(
@@ -34,20 +38,16 @@ RSpec.describe 'resources_arbitrating' do
     end
 
     it 'disallows woman to do anything' do
-      arbitration = Admission::ResourceArbitration.new female, RESOURCE_RULES,
-          :anything, :actions
-      arbitration.prepare_sitting
+      test_person female
       expect(
-          arbitration.rule_per_privilege privilege(:human)
+          actions_rule :anything, privilege(:human)
       ).to eql(false)
     end
 
     it 'allow woman-count to do anything in her country' do
-      arbitration = Admission::ResourceArbitration.new female, RESOURCE_RULES,
-          :anything, :actions
-      arbitration.prepare_sitting :czech
+      test_person female
       expect(
-          arbitration.rule_per_privilege privilege(:human, :count, context: :czech)
+          actions_rule :anything, privilege(:human, :count, context: :czech)
       ).to eql(true)
     end
 
@@ -123,14 +123,15 @@ RSpec.describe 'resources_arbitrating' do
 
   end
 
-  describe 'resources scope' do
+  describe 'resource scope' do
 
     it 'allows vassal to see only himself' do
       expect(
           rule person, :show, privilege(:vassal)
       ).to eql(true)
 
-      person = Person.new 'person', Person::FEMALE, [:czech]
+      person = Feudalism::Person.new 'person',
+          Feudalism::Person::FEMALE, [:czech]
       expect(
           rule person, :show, privilege(:vassal)
       ).to eql(false)
@@ -154,7 +155,7 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'allows access scope-arbiter by resource' do
       expect(
-          rule person, :index, privilege(:vassal, context: :czech)
+          rule :persons, :index, privilege(:vassal, context: :czech)
       ).to eql(true)
     end
 
@@ -170,7 +171,7 @@ RSpec.describe 'resources_arbitrating' do
 
     it 'allows lord to list persons from his country' do
       expect(
-          rule person, :index, privilege(:vassal, context: :czech)
+          rule :persons, :index, privilege(:vassal, context: :czech)
       ).to eql(true)
 
       expect(
@@ -178,7 +179,7 @@ RSpec.describe 'resources_arbitrating' do
       ).to eql(true)
 
       expect(
-          rule person, :index, privilege(:vassal, context: :taiwan)
+          rule :persons, :index, privilege(:vassal, context: :taiwan)
       ).to eql(false)
     end
 
@@ -194,7 +195,8 @@ RSpec.describe 'resources_arbitrating' do
     end
 
     it 'disallows lord to update person not from his country' do
-      female = Person.new 'person', Person::FEMALE, [:taiwan]
+      female = Feudalism::Person.new 'person',
+          Feudalism::Person::FEMALE, [:taiwan]
 
       expect(
           rule female, :update,
@@ -220,7 +222,8 @@ RSpec.describe 'resources_arbitrating' do
     end
 
     it 'allows lord to destroy person from his country' do
-      female = Person.new 'person', Person::FEMALE, [:taiwan]
+      female = Feudalism::Person.new 'person',
+          Feudalism::Person::FEMALE, [:taiwan]
 
       expect(
           rule person, :destroy,
@@ -234,7 +237,8 @@ RSpec.describe 'resources_arbitrating' do
     end
 
     it 'disallows lord to destroy apache helicopter' do
-      helicopter = Person.new 'person', Person::APACHE_HELICOPTER, [:czech]
+      helicopter = Feudalism::Person.new 'person',
+          Feudalism::Person::APACHE_HELICOPTER, [:czech]
       expect(
           rule helicopter, :destroy,
               privilege(:vassal, :lord, context: :czech)
@@ -272,8 +276,8 @@ RSpec.describe 'resources_arbitrating' do
 
       # in other way, test rule method
       expect(person).to receive(:allow_possession_change?).
-              with(person, :taiwan).
-              and_return(true)
+          with(person, :taiwan).
+          and_return(true)
       expect(
           rule [person, :possessions], :update,
               privilege(:vassal, :lord, context: :taiwan)

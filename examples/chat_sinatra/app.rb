@@ -60,7 +60,7 @@ class User
   end
 
   def self.rules
-    @rules ||= Admission::Arbitration.define_rules privileges do
+    @rules ||= Admission::Arbitration.define_rules_for privileges do
 
       privilege :anonymous do
         allow :post_message

@@ -65,7 +65,7 @@ class Admission::Arbitration
     @request.to_s
   end
 
-  def self.define_rules privilege_order, &block
+  def self.define_rules_for privilege_order, &block
     builder = self::RulesBuilder.new privilege_order
     builder.instance_exec &block
     builder.create_index
