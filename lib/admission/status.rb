@@ -71,11 +71,10 @@ class Admission::Status
   private
 
   def process_request arbitration
-    ::Admission.debug_arbitration.call arbitration if ::Admission.debug_arbitration
+    Admission.debug_request&.call arbitration
 
     privileges.any? do |privilege|
-      arbitration.prepare_sitting privilege.context
-      arbitration.rule_per_privilege(privilege).eql? true
+      arbitration.rule_on(privilege).eql? true
     end
   end
 

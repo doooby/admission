@@ -1,4 +1,4 @@
-require_relative './feudalism'
+require_relative './ddle_ages'
 
 RSpec.describe 'resources_arbitrating' do
 

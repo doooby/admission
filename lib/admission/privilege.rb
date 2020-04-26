@@ -1,6 +1,6 @@
 class Admission::Privilege
 
-  RESERVED_ID = :'^'.freeze
+  RESERVED_ID = :'^'
   TOP_LEVEL_KEY = RESERVED_ID
   BASE_LEVEL_NAME = :base
   SEPARATOR = '-'.freeze
@@ -24,6 +24,7 @@ class Admission::Privilege
     with_context.instance_variable_set :@context, context
     with_context
   end
+  alias in_context dup_with_context
 
   def eql? other
     hash == other.hash
@@ -44,12 +45,13 @@ class Admission::Privilege
   end
 
   def inspect
-    "#<#{[
+    details = [
         'Privilege',
-        "key=#{text_key}",
+        text_key,
         (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]"),
         (context && "context=#{context}")
-    ].compact.join ' '} >"
+    ].compact
+    "#<#{details.join ' '}>"
   end
 
   def to_s

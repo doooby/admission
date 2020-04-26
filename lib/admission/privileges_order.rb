@@ -2,8 +2,8 @@ class Admission::PrivilegesOrder
 
   attr_reader :index
 
-  def initialize index
-    @index = index
+  def initialize builder
+    @index = builder.produce_index
   end
 
   def get name, level=nil
@@ -23,12 +23,14 @@ class Admission::PrivilegesOrder
     to_list.select{|privilege| privilege.eql_or_inherits? ref_privilege}
   end
 
-  class Definer
+  class Builder
 
     attr_reader :definitions
 
-    def initialize
+    def initialize &block
       @definitions = {}
+      instance_exec &block
+      setup_inheritance
     end
 
     def privilege name, levels: [], inherits: nil
@@ -40,7 +42,7 @@ class Admission::PrivilegesOrder
       levels.unshift Admission::Privilege::BASE_LEVEL_NAME
       levels.map!{|level| Admission::Privilege.new name, level}
 
-      inherits = nil if inherits && inherits.empty?
+      inherits = nil if inherits&.empty?
       if inherits
         inherits = *inherits
         inherits = inherits.map(&:to_sym).uniq
@@ -49,12 +51,19 @@ class Admission::PrivilegesOrder
       @definitions[name] = {levels: levels, inherits: inherits}
     end
 
-    def self.define &block
-      definer = new
-      definer.instance_exec &block
+    def produce_index
+      definitions.each_pair.reduce({}) do |h, pair|
+        name = pair[0]
+        levels = pair[1][:levels]
 
-      definer.send :setup_inheritance
-      definer.send :build_index
+        levels_hash = levels.reduce({Admission::Privilege::TOP_LEVEL_KEY => levels.last}) do |lh, privilege|
+          lh[privilege.level] = privilege
+          lh
+        end.freeze
+
+        h[name] = levels_hash
+        h
+      end.freeze
     end
 
     private
@@ -73,21 +82,6 @@ class Admission::PrivilegesOrder
           end
         end
       end
-    end
-
-    def build_index
-      definitions.each_pair.reduce({}) do |h, pair|
-        name = pair[0]
-        levels = pair[1][:levels]
-
-        levels_hash = levels.reduce({Admission::Privilege::TOP_LEVEL_KEY => levels.last}) do |lh, privilege|
-          lh[privilege.level] = privilege
-          lh
-        end.freeze
-
-        h[name] = levels_hash
-        h
-      end.freeze
     end
 
   end
