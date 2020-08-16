@@ -6,13 +6,18 @@ RSpec.describe 'actions_arbitrating' do
   RULES = MiddleAges.rules
 
   let(:person){
-    MiddleAges::Person.new 'person',
+    MiddleAges::Person.new 'person', 42,
         MiddleAges::Person::MALE, nil
   }
   let(:woman){
-    MiddleAges::Person.new 'woman',
+    MiddleAges::Person.new 'woman', 42,
         MiddleAges::Person::FEMALE, nil
   }
+  let(:child){
+    MiddleAges::Person.new 'child', 8,
+        MiddleAges::Person::MALE, nil
+  }
+
   before{ test_person person }
   def test_person value; @person = value; end
 

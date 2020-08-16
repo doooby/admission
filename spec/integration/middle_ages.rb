@@ -2,30 +2,31 @@ module MiddleAges
 
   class Person
 
-    attr_reader :name, :sex, :origin
+    attr_reader :name, :age, :sex, :residence
     attr_reader :privileges
 
     FEMALE            = 0
     MALE              = 1
     APACHE_HELICOPTER = 2
 
-    def initialize name, sex, origin
+    def initialize name, age, sex, residence
       @name = name
+      @age = age
       @sex = sex
-      @origin = origin
+      @residence = residence
     end
 
     def not_woman?
       @sex != FEMALE
     end
 
-    # def person
-    #   self
-    # end
+    def from_region? region
+      residence.region == region
+    end
 
-    # def allow_possession_change? _, country
-    #   origin.include? country
-    # end
+    def is_child?
+      age < 10
+    end
 
   end
 
@@ -52,11 +53,34 @@ module MiddleAges
 
   end
 
+  class VillageOrRegion
+
+    def initialize value
+      @value = value
+    end
+
+    def includes_village? village
+      case @value
+        when Village then village == @value
+        when Region then village.region == @value
+      end
+    end
+
+    def is_a_region? region
+      @value.is_a?(Region) && @value == region
+    end
+
+  end
+
+  # TODO
+  # - context: false by default
+  # - context always can be nil
+  # - check inheritance doesn't break context type
   def self.privileges
     @privileges ||= Admission.define_privileges do
       privilege :human,    levels: %i[noble]
-      privilege :vassal
-      privilege :priest,   levels: %i[bishop pope]
+      privilege :vassal,                              context: Region
+      privilege :priest,   levels: %i[bishop pope],   context: VillageOrRegion
       privilege :emperor,  inherits: %i[human priest]
       privilege :god
     end
@@ -66,86 +90,64 @@ module MiddleAges
     @rules ||= Admission.define_rules privileges do
 
       privilege :human do
-        allow_any :actions, if: ->(_){ not_woman? }
+        allow :enjoy, :life do
+          no_woman? ? age < 60 : age < 65
+        end
+        allow :enjoy, :games, if: ->{ is_child? }
+        allow_any :actions, if: :not_woman?
+        forbid :actions, :literally_whatever
+      end
+
+      privilege :human, :noble do
+        allow :enjoy, :life do
+          no_woman? ? age < 62 : age < 67
+        end
+        allow :enjoy, :games
+        allow_any :actions
+      end
+
+      privilege :vassal do
+        allow_resource Person, :impose_corve, if: [ Person, :from_region? ]
+        allow_resource [Region, :villages], :impose_levy,
+            if: [ Region, :== ]
+        allow_resource [Region, :villages], :impose_recruitment,
+            if: -> (resource, context) { resource == context && resource.has_males? }
+      end
+
+      privilege :priest do
+        # for the lolz, but needs to work
+        allow :actions, :mary, if: ->{ :forbid }
+        forbid :enjoy, :games
+        allow Village, :perform_mass, resource: true,
+            if: ->(resource, context) { context.includes_village? resource }
+        allow Person, :forgive_sins, resource: true do |resource, context|
+          context.includes_village? resource.residence
+        end
+      end
+
+      privilege :bishop do
+        allow_resource Region, :perform_mass,
+            if: ->(resource, context) { context.is_a_region? resource }
+      end
+
+      privilege :pope do
+        allow_resource Village, :perform_mass
+        allow_resource Region, :perform_mass
+      end
+
+      privilege :emperor do
+        allow_resource_crud Person, only: %i[index show destroy]
+        allow :actions, :literally_whatever
+        forbid Village, :perform_mass
+        forbid :regions, :perform_mass
+      end
+
+      privilege :god do
+        allow_resource_crud Person
       end
 
     end
   end
-
-  # RESOURCES_RULES = Admission::ResourceArbitration.define_rules_for ORDER do
-  #
-  #   # Rules for `allow_all` & inheriting `:forbidden`
-  #
-  #   privilege :human do
-  #     allow_all :actions, ->{ not_woman? }
-  #     allow :actions
-  #
-  #     # forbid :actions, :raise_taxes
-  #     # forbid :actions, :impose_corvee
-  #     # forbid :actions, :impose_draft
-  #     forbid :actions, :act_as_god
-  #     forbid :actions, :choose_spouse
-  #   end
-  #
-  #   privilege :human, :count do
-  #     allow_all :actions do |country|
-  #       origin.include? country
-  #     end
-  #     allow :actions, :impose_corvee do |country|
-  #       origin.include? country
-  #     end
-  #   end
-  #
-  #   privilege :human, :king do
-  #     allow_all :actions
-  #     allow :actions, :raise_taxes
-  #   end
-  #
-  #   privilege :vassal, :lord do
-  #     allow :actions, :impose_draft
-  #   end
-  #
-  #   privilege :emperor do
-  #     allow :actions, :act_as_god
-  #   end
-  #
-  #   # Rules for `allow_resource` scoping & inheritance
-  #
-  #   privilege :vassal do
-  #
-  #     allow_resource Person, :show do |person, _|
-  #       self == person
-  #     end
-  #
-  #     allow :persons, :index do |country|
-  #       origin.include? country
-  #     end
-  #
-  #   end
-  #
-  #   privilege :vassal, :lord do
-  #
-  #     # this is weird but must be valid
-  #     allow_resource(Person, :show){|*_| true }
-  #
-  #     allow_resource Person, %i[update] do |person, country|
-  #       allowance = origin.include? country
-  #       next allowance unless person
-  #
-  #       allowance && person.origin.include?(country)
-  #     end
-  #
-  #     allow_resource Person, :destroy do |person, country|
-  #       person.origin.include?(country) &&
-  #           person.sex != Person::APACHE_HELICOPTER
-  #     end
-  #
-  #     allow Admission::ResourceArbitration.nested_scope(Person, :possessions), :index
-  #     allow_resource [Person, :possessions], :update, rule: :allow_possession_change?
-  #
-  #   end
-  #
-  # end
 
   module Index
 

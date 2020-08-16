@@ -7,13 +7,14 @@ module Admission
     FINAL_DECISION = [ true, :forbidden ].freeze
     ANY_ACTION = '*'.freeze
 
-    attr_reader :person, :scope, :resource, :context
+    attr_reader :person, :resource
 
     def initialize ruleset, person, request, scope_or_resource=nil
       @scope, @resource = scope_and_resource scope_or_resource
       @rules = ruleset.rules_for self
       @person = person
       @request = request
+      @context_type = nil
       @context = nil
       @decisions = {}
     end
@@ -32,6 +33,7 @@ module Admission
 
     def rule_on privilege
       unless privilege.context == @context
+        @context_type = privilege.context_type
         @context = privilege.context
         @decisions.clear
       end
@@ -80,6 +82,10 @@ module Admission
       end
 
       decision
+    end
+
+    def context_type_and_value
+      [ @context_type, @context ]
     end
 
     def process_error label, *details

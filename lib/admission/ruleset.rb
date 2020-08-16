@@ -143,7 +143,7 @@ class Ruleset
       return true if value.nil?
 
       modifier = case value
-        when Symbol, String then UserMethodModifier.new(**opts).set value
+        when Symbol, String then PersonMethodModifier.new(**opts).set value
         when Proc then LambdaModifier.new(**opts).set value
         when Array then MethodModifier.new(**opts).set(*value)
         else raise "invalid value for rule modifier: #{value.class}"
@@ -159,7 +159,11 @@ class Ruleset
 
     def apply_rule arbitration
       resource = arbitration.resource
+
+      # TODO SOLVE THIS BRO
+      context_type, context = arbitration.context_type_and_value
       context = arbitration.context
+      args = []
 
       if @resource_klass
         unless resource.is_a? @resource_klass
@@ -195,7 +199,7 @@ class Ruleset
 
   end
 
-  class UserMethodModifier < RuleModifier
+  class PersonMethodModifier < RuleModifier
 
     def set method
       @method = method.to_sym
@@ -224,7 +228,7 @@ class Ruleset
       super + [ @object.name, @method ]
     end
 
-    def apply person, args
+    def apply _, args
       @object.send @method, person, *args
     end
 
