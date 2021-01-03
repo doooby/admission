@@ -1,90 +1,90 @@
-class Admission::PrivilegesOrder
+module Admission
+  class PrivilegesOrder
 
-  attr_reader :index
+    attr_reader :privilege_klass, :names
 
-  def initialize builder
-    @index = builder.produce_index
-  end
+    def initialize builder, privilege_klass
+      @grades_index = builder.grades_index.freeze
+      @grades_index.values.each(&:freeze)
 
-  def get name, level=nil
-    levels = index[name.to_sym] || return
-    if level && !level.empty?
-      levels[level.to_sym]
-    else
-      levels[Admission::Privilege::BASE_LEVEL_NAME]
-    end
-  end
+      @inheritance_index = builder.inheritance_index.freeze
+      @inheritance_index.values.each(&:freeze)
 
-  def to_list
-    @list ||= index.values.map(&:values).flatten.uniq
-  end
+      @names = @inheritance_index.keys.freeze
 
-  def entitled_for ref_privilege
-    to_list.select{|privilege| privilege.eql_or_inherits? ref_privilege}
-  end
-
-  class Builder
-
-    attr_reader :definitions
-
-    def initialize &block
-      @definitions = {}
-      instance_exec &block
-      setup_inheritance
+      @privilege_klass = privilege_klass
+      freeze
     end
 
-    def privilege name, levels: [], inherits: nil
-      name = name.to_sym
-      if ([name] + levels).any?{|id| id == Admission::Privilege::RESERVED_ID }
-        raise "reserved name `#{Admission::Privilege::RESERVED_ID}` !"
-      end
-
-      levels.unshift Admission::Privilege::BASE_LEVEL_NAME
-      levels.map!{|level| Admission::Privilege.new name, level}
-
-      inherits = nil if inherits&.empty?
-      if inherits
-        inherits = *inherits
-        inherits = inherits.map(&:to_sym).uniq
-      end
-
-      @definitions[name] = {levels: levels, inherits: inherits}
+    def get status, name, *args
+      validate_name! name
+      @privilege_klass.new status, name, *args
     end
 
-    def produce_index
-      definitions.each_pair.reduce({}) do |h, pair|
-        name = pair[0]
-        levels = pair[1][:levels]
+    def top_down_grades_for name
+      @grades_index[name]
+    end
 
-        levels_hash = levels.reduce({Admission::Privilege::TOP_LEVEL_KEY => levels.last}) do |lh, privilege|
-          lh[privilege.level] = privilege
-          lh
-        end.freeze
-
-        h[name] = levels_hash
-        h
-      end.freeze
+    def inheritance_list_for name
+      @inheritance_index[name]
     end
 
     private
 
-    def setup_inheritance
-      # set inheritance for all privileges
-      definitions.values.each do |levels:, inherits:|
-        levels.each_with_index do |privilege, index|
-          if index > 0 # higher level of privilege, inherits one step lower level
-            privilege.inherits_from levels[index - 1]
-
-          elsif inherits # lowest level, inherits top level of other privileges
-            inherits = inherits.map{|name| definitions[name][:levels].last if definitions.has_key? name}
-            privilege.inherits_from *inherits
-
-          end
-        end
+    def validate_name! name
+      unless @names.include? name
+        raise Admission::Privilege::NotDefinedError.new(self, name)
       end
     end
 
+    class Builder
+
+      attr_reader :grades_index, :inheritance_index
+
+      def initialize &block
+        @grades_index = {}
+        @inheritance_index = {}
+        instance_exec &block
+      end
+
+      def privilege name, grades: [], inherits: []
+        name = name.to_sym
+        grades.map!(&:to_sym)
+
+        # check for invalid names
+        if ([name] + grades).any?{|privilege| privilege == Admission::Privilege::RESERVED_ID }
+          raise "reserved name `#{Admission::Privilege::RESERVED_ID}` !"
+        end
+
+        # build grades full names
+        grades.unshift nil # aka base grade
+        grades.map!{|grade| Admission::Privilege.produce_combined_name name, grade}
+
+        # fill in grades index
+        top_down_grades = grades.reverse
+        top_down_grades.each_with_index do |privilege, index|
+          grades_index[privilege] = top_down_grades[index .. -1]
+        end
+
+        # fetch inherited privileges
+        # must be already defined
+        inherits.map! do |privilege|
+          defined_privilege = inheritance_index[privilege.to_sym]
+          unless defined_privilege
+            raise "privilege #{name} cannot inherit undefined privilege #{privilege}"
+          end
+          defined_privilege
+        end
+
+        # define privileges with grade inheritance
+        grades.each_with_index do |privilege, index|
+          inheritance = inherits.dup
+          inheritance.unshift grades[index + 1] unless index == 0
+          inheritance_index[privilege] = inheritance
+        end
+      end
+
+    end
+
   end
-
-
 end

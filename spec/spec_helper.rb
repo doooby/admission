@@ -25,10 +25,10 @@ end
 
 require_relative '../lib/admission'
 
-class String
-  def tableize
-    "#{self.downcase}s"
-  end
-end
+# class String
+#   def tableize
+#     "#{self.downcase}s"
+#   end
+# end
 
-require_relative '../lib/admission/rails'
+# require_relative '../lib/admission/rails'

@@ -1,5 +1,5 @@
 *.gem
-coverage/
+/coverage/
 tmp/
 .byebug_history
 /.idea

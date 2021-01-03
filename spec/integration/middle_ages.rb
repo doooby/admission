@@ -1,63 +1,77 @@
 module MiddleAges
 
-  class Person
+  # class Person2
+  #   include Admission::PersonWithStatus
+  #
+  #   attr_reader :name, :age, :sex, :residence
+  #   attr_reader :privileges
+  #
+  #   FEMALE            = 0
+  #   MALE              = 1
+  #   APACHE_HELICOPTER = 2
+  #
+  #   def initialize name, age, sex, residence
+  #     @name = name
+  #     @age = age
+  #     @sex = sex
+  #     @residence = residence
+  #   end
+  #
+  #   def is_child?
+  #     age < 10
+  #   end
+  #
+  #   # Privilege.class_evaluate do
+  #   #
+  #   #   attr_reader :region
+  #   #   delegate_to_person :is_child?
+  #   #
+  #   #   def self.bound_dup region, *args
+  #   #     privilege = super *args
+  #   #     privilege.instane_variable_set :@region, region
+  #   #     privilege
+  #   #   end
+  #   #
+  #   #   def apply_to_region? region
+  #   #     person.residence == region
+  #   #   end
+  #   #
+  #   #   def not_woman?
+  #   #     person.sex != Person::FEMALE
+  #   #   end
+  #   #
+  #   # end
+  #
+  # end
 
-    attr_reader :name, :sex, :origin
-    attr_reader :privileges
+  # class Region
+  #
+  #   attr_reader :id, :designation, :lord, :bishop
+  #
+  #   def initialize designation, lord, bishop
+  #     @id = designation.to_s.freeze
+  #     @designation = designation.to_s.freeze
+  #     @lord = lord
+  #     @bishop = bishop
+  #     freeze
+  #   end
+  #
+  #   def self.parse designation
+  #     designation.to_s.chars.each_slice(2).map(&:join).to_a
+  #   end
+  #
+  # end
 
-    FEMALE            = 0
-    MALE              = 1
-    APACHE_HELICOPTER = 2
-
-    def initialize name, sex, origin
-      @name = name
-      @sex = sex
-      @origin = origin
-    end
-
-    def not_woman?
-      @sex != FEMALE
-    end
-
-    # def person
-    #   self
-    # end
-
-    # def allow_possession_change? _, country
-    #   origin.include? country
-    # end
-
-  end
-
-  class Region
-
-    attr_reader :name, :lord, :bishop
-
-    def initialize name, lord, bishop
-      @name = name
-      @lord = lord
-      @bishop = bishop
-    end
-
-  end
-
-  class Village
-
-    attr_reader :name, :region
-
-    def initialize name, region
-      @name = name
-      @region = region
-    end
-
-  end
-
+  # TODO
+  # - context: false by default
+  # - context always can be nil
+  # - check inheritance doesn't break context type
   def self.privileges
-    @privileges ||= Admission.define_privileges do
-      privilege :human,    levels: %i[noble]
+    @privileges ||= Admission.define_privileges klass: Privilege do
+      privilege :human,    grades: %i[noble]
       privilege :vassal
-      privilege :priest,   levels: %i[bishop pope]
-      privilege :emperor,  inherits: %i[human priest]
+      privilege :priest,   grades: %i[bishop pope]
+      privilege :emperor,  inherits: %i[human-noble priest-pope]
       privilege :god
     end
   end
@@ -65,98 +79,86 @@ module MiddleAges
   def self.rules
     @rules ||= Admission.define_rules privileges do
 
+      # is_from_users_region = -> (resource, region) { resource.from_region? region }
+
       privilege :human do
-        allow_any :actions, if: ->(_){ not_woman? }
+        allow :live_a_bit_more do
+          person.male? ? age < 45 : age < 50
+        end
+        allow :enjoy_games, if: ->{ person.is_child? }
+        allow any: true, unless_person: :female?
+        # forbid :act_fancy
+        # forbid %i[mary enjoy_games], if: :priest?
       end
+
+      privilege :human, :noble do
+        allow :live_a_bit_more do
+          person.male? ? age < 60 : age < 65
+        end
+        allow any: true
+      end
+
+      # privilege :vassal do
+      #   allow_on_resource Person, :impose_corvee, require_context: true, if: :is_from_region?
+      #   allow_on :villages, :list
+      #   allow_on_resource [Region, Village], :impose_levy, require_context: true, if: [
+      #       :==,
+      #       -> (resource, _) { !resource.expemt_from_levy_by? self },
+      #   ]
+      #   allow_on_resource [Region, Village], :impose_recruitment, pass_context: true do |resource, context|
+      #     context && resource.from_region?(context)
+      #   end
+      # end
+      #
+      # privilege :priest do
+      #   allow_on Person, :list
+      #   allow_on_resource :persons, :forgive_sins, if: :is_not_devil?
+      #   allow_on_resource Village, :perform_mass, require_context: true, if: [
+      #       :belongs_to_region?,
+      #       -> (resource, _) { !resource.banned_by_pope? }
+      #   ]
+      # end
+      #
+      # privilege :bishop do
+      #   on_resource Person do
+      #     allow :make_a_priest
+      #   end
+      #   allow_on_resource Region, :perform_mass, require_context: true, if: :==
+      # end
+      #
+      # privilege :pope do
+      #   allow_on_resource Person, %i[make_a_bishop]
+      #   allow_on_resource Village, :perform_mass
+      #   allow_on_resource :regions, :perform_mass, :ban
+      # end
+      #
+      # privilege :emperor do
+      #   allow_on_resource Person, resource_actions: {except: %i[create update]}
+      #   forbid Village, :perform_mass
+      #   forbid :regions, :perform_mass
+      #   allow any_action: true
+      # end
+      #
+      # privilege :god do
+      #   allow_on_resource Person, any_action: true
+      # end
 
     end
   end
 
-  # RESOURCES_RULES = Admission::ResourceArbitration.define_rules_for ORDER do
+  # module Index
   #
-  #   # Rules for `allow_all` & inheriting `:forbidden`
-  #
-  #   privilege :human do
-  #     allow_all :actions, ->{ not_woman? }
-  #     allow :actions
-  #
-  #     # forbid :actions, :raise_taxes
-  #     # forbid :actions, :impose_corvee
-  #     # forbid :actions, :impose_draft
-  #     forbid :actions, :act_as_god
-  #     forbid :actions, :choose_spouse
+  #   def records
+  #     @records ||= {}
   #   end
   #
-  #   privilege :human, :count do
-  #     allow_all :actions do |country|
-  #       origin.include? country
-  #     end
-  #     allow :actions, :impose_corvee do |country|
-  #       origin.include? country
-  #     end
-  #   end
-  #
-  #   privilege :human, :king do
-  #     allow_all :actions
-  #     allow :actions, :raise_taxes
-  #   end
-  #
-  #   privilege :vassal, :lord do
-  #     allow :actions, :impose_draft
-  #   end
-  #
-  #   privilege :emperor do
-  #     allow :actions, :act_as_god
-  #   end
-  #
-  #   # Rules for `allow_resource` scoping & inheritance
-  #
-  #   privilege :vassal do
-  #
-  #     allow_resource Person, :show do |person, _|
-  #       self == person
-  #     end
-  #
-  #     allow :persons, :index do |country|
-  #       origin.include? country
-  #     end
-  #
-  #   end
-  #
-  #   privilege :vassal, :lord do
-  #
-  #     # this is weird but must be valid
-  #     allow_resource(Person, :show){|*_| true }
-  #
-  #     allow_resource Person, %i[update] do |person, country|
-  #       allowance = origin.include? country
-  #       next allowance unless person
-  #
-  #       allowance && person.origin.include?(country)
-  #     end
-  #
-  #     allow_resource Person, :destroy do |person, country|
-  #       person.origin.include?(country) &&
-  #           person.sex != Person::APACHE_HELICOPTER
-  #     end
-  #
-  #     allow Admission::ResourceArbitration.nested_scope(Person, :possessions), :index
-  #     allow_resource [Person, :possessions], :update, rule: :allow_possession_change?
-  #
+  #   def [] name
+  #     records[name] || (raise "no such record: #{self.class.name} - #{name}")
   #   end
   #
   # end
 
-  module Index
-
-    def records
-      @records ||= {}
-    end
-
-    def [] name
-      records[name] || (raise "no such record: #{self.class.name} - #{name}")
-    end
-
-  end
-
 end
+
+require_relative './middle_ages/person'
+require_relative './middle_ages/privilege'

@@ -42,13 +42,13 @@ class Admission::Arbitration
     inherited = privilege.inherited
     return nil if inherited.nil? || inherited.empty?
 
-    explicit_allowance = false
+    result = nil
     inherited.each do |p|
       rule = rule_per_privilege p
-      return rule if rule == :forbidden
-      explicit_allowance ||= rule
+      return rule if rule
+      result = false if rule == false
     end
-    explicit_allowance
+    result
   end
 
   def decide privilege

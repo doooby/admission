@@ -1,65 +1,74 @@
-class Admission::Privilege
+module Admission
+  class Privilege
 
-  RESERVED_ID = :'^'
-  TOP_LEVEL_KEY = RESERVED_ID
-  BASE_LEVEL_NAME = :base
-  SEPARATOR = '-'.freeze
+    RESERVED_ID = :'^'
+    TOP_GRADE_KEY = RESERVED_ID
+    BASE_GRADE = :base
+    NAME_SEPARATOR = '-'.freeze
 
-  attr_reader :name, :level, :hash
-  attr_reader :inherited, :context
+    attr_reader :status, :name
 
-  def initialize name, level=nil
-    @name = name.to_sym
-    @level = level ? level.to_sym : BASE_LEVEL_NAME
-    @hash = [@name, @level].hash
-  end
-
-  def inherits_from *privileges
-    @inherited = privileges
-  end
-
-  def dup_with_context context=nil
-    return self if context.nil?
-    with_context = dup
-    with_context.instance_variable_set :@context, context
-    with_context
-  end
-  alias in_context dup_with_context
-
-  def eql? other
-    hash == other.hash
-  end
-
-  def eql_or_inherits? sought
-    return true if eql? sought
-    return false unless inherited
-    inherited.any?{|pi| pi.eql_or_inherits? sought}
-  end
-
-  def text_key
-    @text_key ||= level == BASE_LEVEL_NAME ? name.to_s : "#{name}#{SEPARATOR}#{level}"
-  end
-
-  def self.split_text_key value
-    return value.split(SEPARATOR)
-  end
-
-  def inspect
-    details = [
-        'Privilege',
-        text_key,
-        (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]"),
-        (context && "context=#{context}")
-    ].compact
-    "#<#{details.join ' '}>"
-  end
-
-  def to_s
-    if context
-      "#{text_key}[#{context}]"
-    else
-      text_key
+    def initialize status, name
+      @status = status
+      @name = name.to_sym
     end
-  end
 
+    def eql? other
+      name == other.name
+    end
+
+    # def eql_or_inherits? sought
+    #   return true if eql? sought
+    #   return false unless inherited
+    #   inherited.any?{|pi| pi.eql_or_inherits? sought}
+    # end
+
+    def self.produce_combined_name name, grade
+      if grade.nil?
+        name.to_sym
+      else
+        :"#{name}#{NAME_SEPARATOR}#{grade}"
+      end
+    end
+
+    # def self.separate_name value
+    #   value.split NAME_SEPARATOR
+    # end
+
+    # def inspect
+    #   details = [
+    #       'Privilege',
+    #       text_key,
+    #       (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]"),
+    #       (context && "context=#{context}")
+    #   ].compact
+    #   "#<#{details.join ' '}>"
+    # end
+
+    # def to_s
+    #   if context
+    #     "#{text_key}[#{context}]"
+    #   else
+    #     text_key
+    #   end
+    # end
+
+    class NotDefinedError < ::StandardError
+
+      attr_reader :order, :name
+
+      def initialize order, name
+        @order = order
+        @name = name
+      end
+
+      def message
+        "privilege #{name} is not defined in the #{order.class}"
+      end
+
+      alias to_s message
+
+    end
+
+  end
 end

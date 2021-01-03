@@ -3,88 +3,89 @@
 module Admission
   class Arbitration2
 
-    VALID_DECISION = [ true, false, :forbidden, nil ].freeze
-    FINAL_DECISION = [ true, :forbidden ].freeze
-    ANY_ACTION = '*'.freeze
+    attr_reader :action, :scope, :resource
 
-    attr_reader :person, :scope, :resource, :context
+    def initialize order, rules_index, action, scope_or_resource
+      @order = order
 
-    def initialize ruleset, person, request, scope_or_resource=nil
-      @scope, @resource = scope_and_resource scope_or_resource
-      @rules = ruleset.rules_for self
-      @person = person
-      @request = request
-      @context = nil
-      @decisions = {}
+      @action = action
+      parse_scope scope_or_resource
+
+      rules = rules_index[@scope]
+      @action_rules = rules[action]
+      @any_action_rules = rules[Admission::ANY_ACTION]
     end
 
-    def scope_and_resource scope
+    def decide_on privilege
+      make_a_decision_on(privilege.name, privilege)
+    end
+
+    private
+
+    def parse_scope scope
       case scope
         when Symbol, String
-          [ scope.to_s ]
+          @scope = scope.to_s
+
         when Array
           resource, nested_scope = scope
-          [Admission.nested_scope(resource.class, nested_scope), resource]
+          @scope = Admission.nested_scope resource.class, nested_scope
+          @resource = resource
+
         else
-          [Admission.type_to_scope(scope.class), scope]
+          @scope = Admission.type_to_scope scope.class, scope
+
       end
     end
 
-    def rule_on privilege
-      unless privilege.context == @context
-        @context = privilege.context
-        @decisions.clear
-      end
-      return false if @rules.nil?
-      get_decision(privilege).eql? true
+    def make_a_decision_on privilege_name, original_privilege
+      decision = decide_per_top_grade_rule privilege_name, original_privilege
+      return decision unless decision.nil?
+
+      decision = decide_per_any_action_rule privilege_name, original_privilege
+      return decision unless decision.nil?
+
+      decide_per_inherited_rules privilege_name, original_privilege
     end
 
-    def get_decision privilege
-      return @decisions[privilege] if @decisions.key? privilege
-      decision = decide privilege
-      @decisions[privilege] = (decision.nil? ? false : decision)
-    end
+    def decide_per_top_grade_rule privilege_name, original_privilege
+      return unless @action_rules
 
-    def decide privilege
-      rule = @rules[@request]
-      decision = rule && apply_rule(rule, privilege)
-      return decision if FINAL_DECISION.include? decision
-
-      decision = decide_per_inheritance privilege
-      return decision if FINAL_DECISION.include? decision
-
-      rule = @rules[ANY_ACTION]
-      rule && apply_rule(rule, privilege)
-    end
-
-    def decide_per_inheritance privilege
-      inherited_decision = nil
-      privilege.inherited&.each do |inherited|
-        decision = get_decision inherited
-        return decision if decision == :forbidden
-        inherited_decision ||= decision
-      end
-      inherited_decision
-    end
-
-    def apply_rule rule, privilege
-      decision = rule[privilege]
-
-      if decision.respond_to? :apply_rule
-        decision = decision.apply_rule self
+      rule = nil
+      @order.top_down_grades_for(privilege_name).first do |grade_name|
+        rule = @action_rules[grade_name]
       end
 
-      unless VALID_DECISION.include? decision
-        process_error 'invalid_decision', privilege, decision
-        decision = false
+      if rule.respond_to? :apply_rule
+        rule = rule.apply_rule original_privilege, resource
+        rule = false if rule.nil?
       end
-
-      decision
+      rule
     end
 
-    def process_error label, *details
-      raise 'undefined yet'
+    def decide_per_any_action_rule privilege_name, original_privilege
+      return unless @any_action_rules
+      rule = @any_action_rules[privilege_name]
+      rule = rule.apply_rule original_privilege, resource if rule.respond_to? :apply_rule
+      rule
     end
+
+    def decide_per_inherited_rules privilege_name, original_privilege
+      @order.inheritance_list_for(privilege_name).each do |inherited_name|
+        decision = make_a_decision_on inherited_name, original_privilege
+        return decision if decision
+      end
+    end
+
+    # def decide_per_inheritance privilege
+    #   inherited_decision = nil
+    #   privilege.inherited&.each do |inherited|
+    #     decision = decide inherited
+    #     return decision if decision == :forbidden
+    #     inherited_decision ||= decision
+    #   end
+    #   inherited_decision
+    # end
 
   end
 end
