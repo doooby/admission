@@ -1,8 +1,7 @@
 module Admission
 
-  asterisk_char = '*'.freeze
-  NO_SCOPE = asterisk_char
-  ANY_ACTION = asterisk_char
+  NO_SCOPE = 'no_scope'.freeze
+  ANY_ACTION = '*'.freeze
 
   class << self
 

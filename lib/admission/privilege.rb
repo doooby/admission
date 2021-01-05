@@ -35,23 +35,12 @@ module Admission
     #   value.split NAME_SEPARATOR
     # end
 
-    # def inspect
-    #   details = [
-    #       'Privilege',
-    #       text_key,
-    #       (inherited && "inherited=[#{inherited.map(&:text_key).join ','}]"),
-    #       (context && "context=#{context}")
-    #   ].compact
-    #   "#<#{details.join ' '}>"
-    # end
-
-    # def to_s
-    #   if context
-    #     "#{text_key}[#{context}]"
-    #   else
-    #     text_key
-    #   end
-    # end
+    def inspect
+      attrs_list = [
+          "name=#{name}",
+      ]
+      "<#{self.class} #{attrs_list.join ' '}>"
+    end
 
     class NotDefinedError < ::StandardError
 

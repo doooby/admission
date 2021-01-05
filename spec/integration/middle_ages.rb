@@ -86,7 +86,7 @@ module MiddleAges
           person.male? ? age < 45 : age < 50
         end
         allow :enjoy_games, if: ->{ person.is_child? }
-        allow any: true, unless_person: :female?
+        allow any: true, if_person: :male?
         # forbid :act_fancy
         # forbid %i[mary enjoy_games], if: :priest?
       end
@@ -112,7 +112,7 @@ module MiddleAges
       #
       # privilege :priest do
       #   allow_on Person, :list
-      #   allow_on_resource :persons, :forgive_sins, if: :is_not_devil?
+      #   allow_on_resource :persons, :forgive_sins, unless_person: :is_devil?
       #   allow_on_resource Village, :perform_mass, require_context: true, if: [
       #       :belongs_to_region?,
       #       -> (resource, _) { !resource.banned_by_pope? }

@@ -4,9 +4,11 @@ module Admission
   class Arbitration2
 
     attr_reader :action, :scope, :resource
+    attr_reader :order, :rules_index
 
     def initialize order, rules_index, action, scope_or_resource
       @order = order
+      @rules_index = rules_index
 
       @action = action
       parse_scope scope_or_resource
@@ -15,6 +17,23 @@ module Admission
       @action_rules = rules[action]
       @any_action_rules = rules[Admission::ANY_ACTION]
     end
+
+    def inspect
+      attrs_list = [
+          "action=#{action}",
+          "scope=#{scope}",
+      ]
+      if resource
+        resource_text = if resource.respond_to? :id
+          "resource=<#{resource.class.name} id=#{resource.id}>"
+        else
+          "resource=<#{resource.class.name}>"
+        end
+        attrs_list.push resource_text
+      end
+      "<#{self.class} #{attrs_list.join ' '}>"
+    end
+    alias to_s inspect
 
     def decide_on privilege
       make_a_decision_on(privilege.name, privilege)
@@ -52,7 +71,7 @@ module Admission
       return unless @action_rules
 
       rule = nil
-      @order.top_down_grades_for(privilege_name).first do |grade_name|
+      order.top_down_grades_for(privilege_name).first do |grade_name|
         rule = @action_rules[grade_name]
       end
 
@@ -71,21 +90,11 @@ module Admission
     end
 
     def decide_per_inherited_rules privilege_name, original_privilege
-      @order.inheritance_list_for(privilege_name).each do |inherited_name|
+      order.inheritance_list_for(privilege_name).each do |inherited_name|
         decision = make_a_decision_on inherited_name, original_privilege
         return decision if decision
       end
     end
-
-    # def decide_per_inheritance privilege
-    #   inherited_decision = nil
-    #   privilege.inherited&.each do |inherited|
-    #     decision = decide inherited
-    #     return decision if decision == :forbidden
-    #     inherited_decision ||= decision
-    #   end
-    #   inherited_decision
-    # end
 
   end
 end

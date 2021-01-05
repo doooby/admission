@@ -29,13 +29,14 @@ RSpec.describe 'middle_ages' do
   end
 
   def add_privilege name
-    privilege = MiddleAges.privileges.get person, name
+    privilege = MiddleAges.privileges.get nil, name
     @privileges.push privilege
     privilege
   end
 
   def admissible? action
     person.privileges = @privileges
+    @privileges.each{|privilege| privilege.person = person }
     person.admissible? action
   end
 

@@ -19,8 +19,7 @@ module Admission
     end
 
     def allow *actions, **opts, &block
-      actions = opts[:actions] if opts.key? :actions
-      actions = validate_action_names! actions
+      actions = normalize_actions! opts[:any], opts[:actions], actions
       scope = normalize_scope! opts[:on]
       resource = normalize_resource! opts[:resource], opts[:on]
       rule = normalize_rule!(opts, block, resource) || true
@@ -31,9 +30,11 @@ module Admission
     def produce_index
       index = {}
 
-      rules.each do |privilege:, scope:, actions:, rule:|
-        scope = (index[scope] ||= {})
-        actions.each do |action|
+      rules.each do |definition|
+        privilege = definition[:privilege]
+        rule = definition[:rule]
+        scope = (index[definition[:scope]] ||= {})
+        definition[:actions].each do |action|
           action_index = (scope[action] ||= {})
           action_index[privilege] = rule
         end
@@ -59,11 +60,28 @@ module Admission
       }
     end
 
+    def normalize_actions! is_any, action_opt, actions_list
+      if action_opt
+        actions_list = action_opt.is_a?(Array) ? action_opt : [action_opt]
+      end
+      if is_any
+        raise 'catch-all :any options with actions list defined' unless actions_list.empty?
+        return [Admission::ANY_ACTION]
+      end
+      validate_action_names! actions_list
+      actions_list
+    end
+
     def validate_action_names! actions
       if actions.include? Admission::ANY_ACTION
         raise "reserved action name #{Admission::ANY_ACTION}"
       end
-      actions
+      actions.each do |name|
+        case name
+          when String, Symbol then nil
+          else raise "action must be a Symbol or String"
+        end
+      end
     end
 
     def normalize_scope! scope
