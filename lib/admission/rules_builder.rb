@@ -19,12 +19,18 @@ module Admission
     end
 
     def allow *actions, **opts, &block
-      actions = normalize_actions! opts[:any], opts[:actions], actions
+      actions = normalize_actions! opts[:actions] || actions
       scope = normalize_scope! opts[:on]
       resource = normalize_resource! opts[:resource], opts[:on]
       rule = normalize_rule!(opts, block, resource) || true
       rule = cached_rule rule
-      add_allowance_rule scope, actions.flatten, rule
+      add_allowance_rule scope, actions, rule
+    end
+
+    def disallow *actions, **opts
+      actions = normalize_actions! actions
+      scope = normalize_scope! opts[:on]
+      add_allowance_rule scope, actions, false
     end
 
     def produce_index
@@ -60,22 +66,14 @@ module Admission
       }
     end
 
-    def normalize_actions! is_any, action_opt, actions_list
-      if action_opt
-        actions_list = action_opt.is_a?(Array) ? action_opt : [action_opt]
-      end
-      if is_any
-        raise 'catch-all :any options with actions list defined' unless actions_list.empty?
-        return [Admission::ANY_ACTION]
-      end
-      validate_action_names! actions_list
-      actions_list
+    def normalize_actions! actions
+      actions = [actions] unless actions.is_a? Array
+      actions.flatten!
+      validate_action_names! actions
+      actions
     end
 
     def validate_action_names! actions
-      if actions.include? Admission::ANY_ACTION
-        raise "reserved action name #{Admission::ANY_ACTION}"
-      end
       actions.each do |name|
         case name
           when String, Symbol then nil
@@ -168,7 +166,13 @@ module Admission
     end
 
     def apply_rule privilege, resource
-      apply privilege, (@resource_klass ? [resource] : [])
+      args = if @resource_klass
+        return false if resource.nil?
+        [ resource ]
+      else
+        []
+      end
+      apply privilege, args
     end
 
     def rule_id_array

@@ -1,7 +1,6 @@
 module Admission
 
   NO_SCOPE = 'no_scope'.freeze
-  ANY_ACTION = '*'.freeze
 
   class << self
 

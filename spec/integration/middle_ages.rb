@@ -83,19 +83,20 @@ module MiddleAges
 
       privilege :human do
         allow :live_a_bit_more do
-          person.male? ? age < 45 : age < 50
+          person.female? ? person.age < 50 : person.age < 45
         end
         allow :enjoy_games, if: ->{ person.is_child? }
-        allow any: true, if_person: :male?
-        # forbid :act_fancy
-        # forbid %i[mary enjoy_games], if: :priest?
+        allow :be_self, if_person: :male?
+        allow :mary, unless: :priest?
+        allow :be_a_bit_basic
       end
 
       privilege :human, :noble do
-        allow :live_a_bit_more do
+        allow %i[live_a_bit_more] do
           person.male? ? age < 60 : age < 65
         end
-        allow any: true
+        allow :be_self, :act_fancy
+        disallow :be_a_bit_basic
       end
 
       # privilege :vassal do
