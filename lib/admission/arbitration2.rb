@@ -12,7 +12,8 @@ module Admission
 
       @action = action
       parse_scope scope_or_resource
-      @action_rules = rules_index[@scope][action]
+      scope_rules = rules_index[@scope]
+      @action_rules = scope_rules && scope_rules[action]
     end
 
     def inspect
@@ -34,7 +35,6 @@ module Admission
 
     def decide_on privilege
       decision = rule privilege.name
-
       if decision.respond_to? :apply_rule
         decision = decision.apply_rule privilege, resource
       end
@@ -54,7 +54,8 @@ module Admission
           @resource = resource
 
         else
-          @scope = Admission.type_to_scope scope.class, scope
+          @scope = Admission.type_to_scope scope.class
+          @resource = scope
 
       end
     end

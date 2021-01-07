@@ -18,17 +18,17 @@ module Admission
 
   end
 
-  # def self.type_to_scope type
-  #   "#{type.name.downcase}s"
-  # end
-  #
-  # def self.nested_scope resource, scope
-  #   unless resource.is_a?(Symbol) || resource.is_a?(String)
-  #     resource = type_to_scope resource
-  #   end
-  #   "#{resource}:#{scope}"
-  # end
-  #
+  def self.type_to_scope type
+    "#{type.name.downcase}s"
+  end
+
+  def self.nested_scope resource, scope
+    unless resource.is_a?(Symbol) || resource.is_a?(String)
+      resource = type_to_scope resource
+    end
+    "#{resource}:#{scope}"
+  end
+
   # def self.resource_to_s resource
   #   if resource.respond_to? :id
   #     "#{resource.class.name}[#{resource.id || 'new'}]"

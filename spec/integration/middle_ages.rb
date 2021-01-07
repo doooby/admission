@@ -1,5 +1,10 @@
 module MiddleAges
 
+  class Region < Struct.new(:name)
+    def self.name; 'Region'; end
+    EXEMPT_FROM_LEVY = [ :nesselsdorf ]
+  end
+
   # class Person2
   #   include Admission::PersonWithStatus
   #
@@ -99,18 +104,16 @@ module MiddleAges
         disallow :be_a_bit_basic
       end
 
-      # privilege :vassal do
-      #   allow_on_resource Person, :impose_corvee, require_context: true, if: :is_from_region?
-      #   allow_on :villages, :list
-      #   allow_on_resource [Region, Village], :impose_levy, require_context: true, if: [
-      #       :==,
-      #       -> (resource, _) { !resource.expemt_from_levy_by? self },
-      #   ]
-      #   allow_on_resource [Region, Village], :impose_recruitment, pass_context: true do |resource, context|
-      #     context && resource.from_region?(context)
-      #   end
-      # end
-      #
+      privilege :vassal do
+        allow_on_resource Person, :impose_corvee, if: :same_region_as?
+        allow_on :persons, :frown_upon
+        allow_on_resource [Region, :villages], :impose_levy do |region|
+          next false if Region::EXEMPT_FROM_LEVY.include? region.name
+          self.region == region
+        end
+        allow :impose_recruitment, on: [Region, :villages], resource: true, if: :same_region_as?
+      end
+
       # privilege :priest do
       #   allow_on Person, :list
       #   allow_on_resource :persons, :forgive_sins, unless_person: :is_devil?

@@ -22,8 +22,8 @@ module Admission
       actions = normalize_actions! opts[:actions] || actions
       scope = normalize_scope! opts[:on]
       resource = normalize_resource! opts[:resource], opts[:on]
-      rule = normalize_rule!(opts, block, resource) || true
-      rule = cached_rule rule
+      rule = normalize_rule!(opts, block) || true
+      rule = cached_rule rule, resource
       add_allowance_rule scope, actions, rule
     end
 
@@ -31,6 +31,17 @@ module Admission
       actions = normalize_actions! actions
       scope = normalize_scope! opts[:on]
       add_allowance_rule scope, actions, false
+    end
+
+    def allow_on scope, *actions, **opts, &block
+      opts[:on] = scope
+      allow *actions, **opts, &block
+    end
+
+    def allow_on_resource resource, *actions, **opts, &block
+      opts[:on] = resource
+      opts[:resource] = true
+      allow *actions, **opts, &block
     end
 
     def produce_index
@@ -92,31 +103,29 @@ module Admission
       end
     end
 
-    def normalize_resource! resource, scope
-      return unless resource
+    def normalize_resource! is_resource, scope
+      return unless is_resource
       resource = (scope.is_a? Array) ? scope.first : scope
-      if resource && !resource.is_a?(Class)
-        raise "invalid resource type #{resource.to_s}"
-      end
+      raise "invalid resource type #{resource.to_s}" unless resource.is_a?(Class)
       resource
     end
 
-    def normalize_rule! opts, block, resource
+    def normalize_rule! opts, block
       conditions = opts.keys.select{|key| key.match? CONDITION_REGEX}
 
       if block
         raise 'block modifier combined with :if or :unless option' unless conditions.empty?
-        return LambdaRule.new block, resource
+        return LambdaRule.new block
       end
 
       unless conditions.empty?
         raise 'multiple :if or :unless options' if conditions.length > 1
         condition_key = conditions.first
-        map_condition condition_key, opts[condition_key], resource
+        map_condition condition_key, opts[condition_key]
       end
     end
 
-    def map_condition condition_key, rule, resource
+    def map_condition condition_key, rule
       symbol_rule = rule.is_a? Symbol
       proc_rule = rule.is_a? Proc
       unless symbol_rule || proc_rule
@@ -130,7 +139,7 @@ module Admission
           when 'if' then DelegatedMethodRule
           when 'unless' then NegativeDelegatedMethodRule
         end
-        rule_class.new delegation, rule, resource
+        rule_class.new delegation, rule
 
       else
         rule_class = case operation
@@ -140,18 +149,19 @@ module Admission
             raise 'use :if instead :unless proc condition' if proc_rule
             NegativeMethodRule
         end
-        rule_class.new rule, resource
+        rule_class.new rule
 
       end
     end
 
-    def cached_rule rule
+    def cached_rule rule, resource
       return rule unless rule.respond_to? :rule_id_array
 
-      id = rule.rule_id_array
+      id = rule.rule_id_array resource
       cached = @modifiers_cache[id]
       unless cached
         @modifiers_cache[id] = rule
+        rule.requires_resource = !!resource
         cached = rule.freeze
       end
       cached
@@ -160,13 +170,10 @@ module Admission
   end
 
   class Rule
-
-    def initialize resource
-      @resource_klass = resource
-    end
+    attr_accessor :requires_resource
 
     def apply_rule privilege, resource
-      args = if @resource_klass
+      args = if requires_resource
         return false if resource.nil?
         [ resource ]
       else
@@ -175,20 +182,19 @@ module Admission
       apply privilege, args
     end
 
-    def rule_id_array
-      [ self.class, @resource_klass ]
+    def rule_id_array resource
+      [ self.class, resource ]
     end
 
   end
 
   class LambdaRule < Rule
 
-    def initialize fn, resource
-      super resource
+    def initialize fn
       @fn = fn
     end
 
-    def rule_id_array
+    def rule_id_array _
       super + [ @fn ]
     end
 
@@ -202,12 +208,11 @@ module Admission
 
   class MethodRule < Rule
 
-    def initialize name, resource
-      super resource
+    def initialize name
       @name = name
     end
 
-    def rule_id_array
+    def rule_id_array _
       super + [ @name ]
     end
 
@@ -230,13 +235,12 @@ module Admission
 
   class DelegatedMethodRule < Rule
 
-    def initialize delegate_to, name, resource
-      super resource
+    def initialize delegate_to, name
       @delegate_to = delegate_to
       @name = name
     end
 
-    def rule_id_array
+    def rule_id_array _
       super + [ @delegate_to, @name ]
     end
 

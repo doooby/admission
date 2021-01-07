@@ -2,6 +2,8 @@ module MiddleAges
   class Person
     include Admission::Status
 
+    def self.name; 'Person'; end
+
     attr_accessor :name, :age, :sex, :residence
 
     FEMALE            = 0
@@ -37,6 +39,10 @@ module MiddleAges
 
     def female?
       sex == FEMALE
+    end
+
+    def belongs_to_region? region
+      residence == region
     end
 
   end
