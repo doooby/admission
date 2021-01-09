@@ -26,7 +26,7 @@ module MiddleAges
     end
 
     def create_admission_arbitration request, scope
-      Admission::Arbitration2.new MiddleAges.privileges, MiddleAges.rules, request, scope
+      Admission::Arbitration.new MiddleAges.privileges, MiddleAges.rules, request, scope
     end
 
     def is_child?
