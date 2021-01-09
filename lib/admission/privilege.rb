@@ -1,8 +1,6 @@
 module Admission
   class Privilege
 
-    RESERVED_ID = :'^'
-    TOP_GRADE_KEY = RESERVED_ID
     BASE_GRADE = :base
     NAME_SEPARATOR = '-'.freeze
 
@@ -17,12 +15,6 @@ module Admission
       name == other.name
     end
 
-    # def eql_or_inherits? sought
-    #   return true if eql? sought
-    #   return false unless inherited
-    #   inherited.any?{|pi| pi.eql_or_inherits? sought}
-    # end
-
     def self.produce_combined_name name, grade
       if grade.nil?
         name.to_sym
@@ -30,10 +22,6 @@ module Admission
         :"#{name}#{NAME_SEPARATOR}#{grade}"
       end
     end
-
-    # def self.separate_name value
-    #   value.split NAME_SEPARATOR
-    # end
 
     def inspect
       attrs_list = [

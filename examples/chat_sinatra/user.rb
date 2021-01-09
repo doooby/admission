@@ -3,6 +3,7 @@ class User
 
   DB = Concurrent::Hash.new
 
+  include Admission::Status
   attr_reader :id, :name, :status, :ws
   attr_accessor :karma
 
@@ -20,7 +21,7 @@ class User
 
   def msg_brag _
     User.broadcast_message self,
-        "I have so much karma! #{karma}, to be specific."
+        "I have so much karma! #{karma} to be specific."
   end
 
   def initialize type, name
@@ -28,44 +29,45 @@ class User
     @anonymous = type != 'with_name'
     @name = anonymous? ? "User-#{id}" : name
     @karma = 0
-    @status = create_status
+    self.privileges = [
+        User.admission_privileges.get(self, (anonymous? ? :anonymous : :with_name))
+    ]
   end
 
   def anonymous?
     @anonymous
   end
 
-  def create_status
-    privilege = anonymous? ? User::ANONYMOUS : USER::WITH_NAME
-    Admission::Status.new self, [privilege], User.admission_rules
-  end
-
   def self.admission_privileges
-    @admission_privileges ||= Admission.define_privileges self do
-      privilege 'ANONYMOUS'
-      privilege 'WITH_NAME'
+    @admission_privileges ||= Admission.define_privileges do
+      privilege :anonymous
+      privilege :with_name
     end
   end
 
   def self.admission_rules
     @admission_rules ||= Admission.define_rules admission_privileges do
 
-      with ANNONYMOUS do
+      privilege :anonymous do
         allow :post_message
-        allow :give_carma, if: ->{ karma >= 1 }
+        allow :give_karma, if: ->{ status.karma >= 1 }
       end
 
-      privilege WITH_NAME do
+      privilege :with_name do
         allow :post_message
         allow :give_karma
-        allow :brag, if: ->{ karma >= 5 }
+        allow :brag, if: ->{ status.karma >= 5 }
       end
 
     end
   end
 
+  def create_admission_arbitration *args
+    Admission::Arbitration.new User.admission_privileges, User.admission_rules, *args
+  end
+
   def process_msg msg, data
-    status.request! msg.to_sym
+    admissible! msg.to_s
     send "msg_#{msg}", data
 
   rescue Admission::Denied => e

@@ -81,6 +81,7 @@ module Admission
       actions = [actions] unless actions.is_a? Array
       actions.flatten!
       validate_action_names! actions
+      actions.map!(&:to_s)
       actions
     end
 
@@ -98,7 +99,7 @@ module Admission
         when nil then Admission::NO_SCOPE
         when Symbol, String then scope.to_s
         when Array then Admission.nested_scope(*scope)
-        when Class then Admission.type_to_scope scope
+        when Class then Admission.resource_type_to_scope scope
         else raise 'invalid scope'
       end
     end

@@ -1,11 +1,10 @@
 module Admission
   class Denied < ::StandardError
 
-    attr_reader :status, :arbitration
+    attr_reader :arbitration
 
-    def initialize status, *request_args
-      @status = status
-      @arbitration = status.instantiate_arbitration *request_args
+    def initialize arbitration
+      @arbitration = arbitration
     end
 
     def message

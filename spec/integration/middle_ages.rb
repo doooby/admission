@@ -5,79 +5,13 @@ module MiddleAges
     EXEMPT_FROM_LEVY = [ :nesselsdorf ]
   end
 
-  # class Person2
-  #   include Admission::PersonWithStatus
-  #
-  #   attr_reader :name, :age, :sex, :residence
-  #   attr_reader :privileges
-  #
-  #   FEMALE            = 0
-  #   MALE              = 1
-  #   APACHE_HELICOPTER = 2
-  #
-  #   def initialize name, age, sex, residence
-  #     @name = name
-  #     @age = age
-  #     @sex = sex
-  #     @residence = residence
-  #   end
-  #
-  #   def is_child?
-  #     age < 10
-  #   end
-  #
-  #   # Privilege.class_evaluate do
-  #   #
-  #   #   attr_reader :region
-  #   #   delegate_to_person :is_child?
-  #   #
-  #   #   def self.bound_dup region, *args
-  #   #     privilege = super *args
-  #   #     privilege.instane_variable_set :@region, region
-  #   #     privilege
-  #   #   end
-  #   #
-  #   #   def apply_to_region? region
-  #   #     person.residence == region
-  #   #   end
-  #   #
-  #   #   def not_woman?
-  #   #     person.sex != Person::FEMALE
-  #   #   end
-  #   #
-  #   # end
-  #
-  # end
-
-  # class Region
-  #
-  #   attr_reader :id, :designation, :lord, :bishop
-  #
-  #   def initialize designation, lord, bishop
-  #     @id = designation.to_s.freeze
-  #     @designation = designation.to_s.freeze
-  #     @lord = lord
-  #     @bishop = bishop
-  #     freeze
-  #   end
-  #
-  #   def self.parse designation
-  #     designation.to_s.chars.each_slice(2).map(&:join).to_a
-  #   end
-  #
-  # end
-
-  # TODO
-  # - context: false by default
-  # - context always can be nil
-  # - check inheritance doesn't break context type
   def self.privileges
     @privileges ||= Admission.define_privileges klass: Privilege do
       privilege :human,    grades: %i[noble]
       privilege :vassal
-      privilege :priest,   grades: %i[bishop pope]
-      privilege :emperor,  inherits: %i[human-noble priest-pope]
-      privilege :god
+      # privilege :priest,   grades: %i[bishop pope]
+      # privilege :emperor,  inherits: %i[human-noble priest-pope]
+      # privilege :god
     end
   end
 
@@ -149,18 +83,6 @@ module MiddleAges
 
     end
   end
-
-  # module Index
-  #
-  #   def records
-  #     @records ||= {}
-  #   end
-  #
-  #   def [] name
-  #     records[name] || (raise "no such record: #{self.class.name} - #{name}")
-  #   end
-  #
-  # end
 
 end
 

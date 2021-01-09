@@ -1,140 +1,105 @@
-class Admission::Arbitration
+# frozen_string_literal: true
 
-  attr_reader :person, :request
+module Admission
+  class Arbitration
 
-  def initialize person, rules_index, request
-    @person = person
-    @rules_index = rules_index
-    @request = request.to_sym
-    @decisions = {}
-  end
+    attr_reader :order, :rules_index
+    attr_reader :action, :scope, :resource, :result
 
-  def prepare_sitting context=nil
-    return if context == @context
-    @context = context
-    @decisions = {}
-  end
+    def initialize order, rules_index, action, scope_or_resource
+      @order = order
+      @rules_index = rules_index
 
-  def rule_per_privilege privilege
-    decision = @decisions[privilege]
-    return decision unless decision.nil?
-
-    decision = decide privilege
-
-    decision = false if decision.nil?
-    @decisions[privilege] = decision
-  end
-
-  def make_decision from_rules, privilege
-    if from_rules
-      decision = from_rules[privilege]
-      decision = @person.instance_exec @context, &decision if Proc === decision
-
-      unless Admission::VALID_DECISION.include? decision
-        raise "invalid decision: #{decision}"
-      end
-
-      decision
-    end
-  end
-
-  def decide_per_inheritance privilege
-    inherited = privilege.inherited
-    return nil if inherited.nil? || inherited.empty?
-
-    result = nil
-    inherited.each do |p|
-      rule = rule_per_privilege p
-      return rule if rule
-      result = false if rule == false
-    end
-    result
-  end
-
-  def decide privilege
-    decision = make_decision @rules_index[@request], privilege
-    return decision if decision.eql?(:forbidden) || decision.eql?(true)
-
-    decision = decide_per_inheritance privilege
-    return decision if decision.eql?(:forbidden) || decision.eql?(true)
-
-    make_decision @rules_index[Admission::ALL_ACTION], privilege
-  end
-
-  def case_to_s
-    @request.to_s
-  end
-
-  def self.define_rules_for privilege_order, &block
-    builder = self::RulesBuilder.new privilege_order
-    builder.instance_exec &block
-    builder.create_index
-  end
-
-  class RulesBuilder
-
-    attr_reader :rules, :privilege_order
-
-    def initialize privilege_order
-      @rules = []
-      @privilege_order = privilege_order
+      @action = action.to_s
+      parse_scope scope_or_resource
+      scope_rules = @rules_index[@scope]
+      @action_rules = scope_rules && scope_rules[@action]
+      @result = nil
     end
 
-    def privilege name, level=nil
-      @privilege = privilege_order.get name, level
-      raise "no such privilege: #{name}#{Admission::Privilege::SEPARATOR}#{level}" unless @privilege
-      yield
-      @privilege = nil
-    end
-
-    def allow *actions, &block
-      validate_action_names! actions
-      add_allowance_rule actions.flatten, (block || true)
-    end
-
-    def allow_all &block
-      add_allowance_rule [Admission::ALL_ACTION], (block || true)
-    end
-
-    def forbid *actions
-      validate_action_names! actions
-      add_allowance_rule actions.flatten, :forbidden
-    end
-
-    def add_allowance_rule actions, arbiter, **options
-      raise 'must be called within `privilege` block' unless @privilege
-
-      @rules << options.merge!(
-          privilege: @privilege,
-          actions: actions,
-          arbiter: arbiter
-      )
-    end
-
-    def create_index
-      index_instance = @rules.reduce Hash.new do |index, allowance|
-        privilege = allowance[:privilege]
-        actions = allowance[:actions]
-        arbiter = allowance[:arbiter]
-
-        actions.each do |action|
-          action_index = (index[action] ||= {})
-          action_index[privilege] = arbiter
+    def inspect
+      attrs_list = [
+          "action=#{action}",
+          "scope=#{scope}",
+      ]
+      if resource
+        resource_text = if resource.respond_to? :id
+          "resource=<#{resource.class.name} id=#{resource.id}>"
+        else
+          "resource=<#{resource.class.name}>"
         end
-
-        index
+        attrs_list.push resource_text
       end
+      "<#{self.class} #{attrs_list.join ' '}>"
+    end
+    alias to_s inspect
 
-      index_instance.values.each &:freeze
-      index_instance.freeze
+    def case_to_s
+      "Admission denied for action :#{@action} on :#{@scope}"
+    end
+
+    def process status
+      if Admission.debug_arbitration
+        instance_exec status, &Admission.debug_arbitration
+      end
+      @result = status.privileges.any? do |privilege|
+        decide_on privilege
+      end
+    end
+
+    def decide_on privilege
+      decision = rule privilege.name
+      if decision.respond_to? :apply_rule
+        decision = decision.apply_rule privilege, resource
+      end
+      decision.nil? ? false : decision
     end
 
     private
 
-    def validate_action_names! actions
-      raise "reserved action name #{Admission::ALL_ACTION}" if actions.include? Admission::ALL_ACTION
+    def parse_scope scope
+      case scope
+        when Symbol, String
+          @scope = scope.to_s
+
+        when Array
+          resource, nested_scope = scope
+          @scope = Admission.nested_scope resource.class, nested_scope
+          @resource = resource
+
+        else
+          @scope = Admission.resource_type_to_scope scope.class
+          @resource = scope
+
+      end
+    end
+
+    def rule privilege_name
+      decision = rule_per_privilege privilege_name
+      return decision unless decision.nil?
+
+      rule_per_inheritance privilege_name
+    end
+
+    def rule_per_privilege privilege_name
+      return unless @action_rules
+
+      order.top_down_grades_for(privilege_name).each do |grade_name|
+        decision = @action_rules[grade_name]
+        return decision unless decision.nil?
+      end
+
+      nil
+    end
+
+    def rule_per_inheritance privilege_name
+      order.inheritance_list_for(privilege_name).each do |inherited_name|
+        decision = rule inherited_name
+        return decision unless decision.nil?
+      end
+
+      nil
     end
 
   end
-
 end

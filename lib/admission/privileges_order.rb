@@ -51,11 +51,6 @@ module Admission
         name = name.to_sym
         grades.map!(&:to_sym)
 
-        # check for invalid names
-        if ([name] + grades).any?{|privilege| privilege == Admission::Privilege::RESERVED_ID }
-          raise "reserved name `#{Admission::Privilege::RESERVED_ID}` !"
-        end
-
         # build grades full names
         grades.unshift nil # aka base grade
         grades.map!{|grade| Admission::Privilege.produce_combined_name name, grade}
