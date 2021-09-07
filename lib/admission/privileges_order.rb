@@ -17,6 +17,7 @@ module Admission
     end
 
     def get status, name, *args
+      name = name.to_s.freeze
       validate_name! name
       @privilege_klass.new status, name, *args
     end
@@ -48,8 +49,8 @@ module Admission
       end
 
       def privilege name, grades: [], inherits: []
-        name = name.to_sym
-        grades.map!(&:to_sym)
+        name = name.to_s
+        grades.map!{|grade| grade.to_s.freeze }
 
         # build grades full names
         grades.unshift nil # aka base grade
@@ -64,11 +65,11 @@ module Admission
         # fetch inherited privileges
         # must be already defined
         inherits.map! do |privilege|
-          defined_privilege = inheritance_index[privilege.to_sym]
-          unless defined_privilege
+          privilege = privilege.to_s
+          unless grades_index.keys.include? privilege
             raise "privilege #{name} cannot inherit undefined privilege #{privilege}"
           end
-          defined_privilege
+          privilege
         end
 
         # define privileges with grade inheritance

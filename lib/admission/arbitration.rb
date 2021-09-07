@@ -42,6 +42,7 @@ module Admission
       if Admission.debug_arbitration
         instance_exec status, &Admission.debug_arbitration
       end
+      byebug if $bug
       @result = status.privileges.any? do |privilege|
         decide_on privilege
       end

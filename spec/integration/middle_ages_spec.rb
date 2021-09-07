@@ -27,7 +27,11 @@ RSpec.describe 'middle_ages' do
   end
 
   def add_privilege name, grade=nil, region: nil
-    name = MiddleAges::Privilege.produce_combined_name name, grade if grade
+    name = if grade
+      MiddleAges::Privilege.produce_combined_name name, grade
+    else
+      name.to_s.freeze
+    end
     privilege = MiddleAges.privileges.get nil, name, region
     @privileges.push privilege
     privilege
@@ -62,7 +66,9 @@ RSpec.describe 'middle_ages' do
     set_privilege :human
 
     set_person sex: :female
+    bug do
     expect(admissible? :live_a_bit_more).to be(true)
+    end
 
     set_person
     expect(admissible? :live_a_bit_more).to be(true)

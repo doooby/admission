@@ -8,7 +8,7 @@ module Admission
 
     def initialize status, name
       @status = status
-      @name = name.to_sym
+      @name = name
     end
 
     def eql? other
@@ -17,9 +17,9 @@ module Admission
 
     def self.produce_combined_name name, grade
       if grade.nil?
-        name.to_sym
+        name
       else
-        :"#{name}#{NAME_SEPARATOR}#{grade}"
+        "#{name}#{NAME_SEPARATOR}#{grade}".freeze
       end
     end
 
